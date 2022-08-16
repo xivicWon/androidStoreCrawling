@@ -97,7 +97,7 @@ def workToThread(crwlingJob:list ) :
 
 crwlingJob = []
 start = time.time()
-openDB: OpenDB = OpenDB(host, username ,password, database)
+openDB: OpenDB = OpenDB(host, user_name ,password, database)
 packageRepository: PackageRepository = PackageRepository(openDB)
 if __name__  == '__main__' :
     jobCount = 10000
