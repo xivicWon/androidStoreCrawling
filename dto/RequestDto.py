@@ -1,7 +1,9 @@
 import requests
 
+from dto.Dto import Dto
 
-class RequestDto : 
+
+class RequestDto (Dto): 
     url : str
     response : requests.Response
 

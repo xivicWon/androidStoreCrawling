@@ -1,7 +1,7 @@
 
 from typing import List
 from dto.MobileIndexDto import MobileIndexDto
-from module.OpenDB_v2 import OpenDB
+from module.OpenDB_v3 import OpenDB
 
 
 class MobileIndexRepository :
@@ -27,8 +27,10 @@ class MobileIndexRepository :
             if len(insertValueClause) >= self.maxInsertClauseCount :
                 query = self._createSaveClause(insertClause, insertValueClause)
                 insertValueClause = []
+                # print(query)
                 self.dbManager.insert(query)
                 
         if len(insertValueClause) > 0 :
             query = self._createSaveClause(insertClause, insertValueClause)
+            # print(query)
             self.dbManager.insert(query)

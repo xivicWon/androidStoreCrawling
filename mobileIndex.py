@@ -1,14 +1,14 @@
-import json
-import os
+import sys, rootpath
+sys.path.append(rootpath.detect())
+import requests, time, datetime, json
 from typing import List
-import requests, time, datetime
 from requests import post
 from threading import Thread
 from multiprocessing import current_process
-from dotenv import load_dotenv
 from dto.MobileIndexDto import MobileIndexDto
 from module.OpenDB_v2 import OpenDB 
-from module.MobileIndexRepository import MobileIndexRepository
+from module.EnvStore import EnvStore 
+from repository.MobileIndexRepository import MobileIndexRepository
 
 def curl(url , data , headers ):
     res = post(url, data=json.dumps(data) , headers=headers, timeout=10)
@@ -71,12 +71,9 @@ def workToThread() :
         thread.join()
         
 
-load_dotenv()
-host = os.environ.get("HOST")
-database = os.environ.get("DATABASE")
-user_name = os.environ.get("DATABASE_USER")
-password = os.environ.get("DATABASE_USER_PASS")
-openDB: OpenDB = OpenDB(host, user_name ,password, database)
+Env = EnvStore()
+appStore = Env.getAppStore
+openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
 mobileIndexRepository = MobileIndexRepository(openDB)
 
 if __name__  == '__main__' :

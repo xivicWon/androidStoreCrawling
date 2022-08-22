@@ -1,6 +1,6 @@
 from module.OpenDB import OpenDB
 
-class PackageRepository :
+class PackageRepository:
     
     def __init__(self, dbManager:OpenDB) -> None:
         self.dbManager = dbManager

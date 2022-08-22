@@ -1,7 +1,7 @@
 from random import random
-from typing import Callable, List
-import requests, time
-from threading import Thread, current_thread 
+from typing import List
+import time
+from threading import Thread
 from multiprocessing import Process,Queue , current_process
 
 

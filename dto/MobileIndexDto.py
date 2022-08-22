@@ -1,8 +1,9 @@
 import datetime
 import string
+from dto.Dto import Dto
 from entity.AppEntity import AppEntity
 
-class MobileIndexDto :
+class MobileIndexDto(Dto) :
     rank : int
     country_name : string
     market_name : string
@@ -41,16 +42,17 @@ class MobileIndexDto :
      
     def toAppEntity(self) -> AppEntity:
         appEntity = AppEntity()  
-        appEntity.id = self.market_appid
-        appEntity.market_num = appEntity.getMarketNumByName(self.market_name)
-        appEntity.app_name = self.app_name
-        appEntity.developer_num = 0
-        appEntity.cate_num = 0
-        appEntity.min_use_age = 0
-        appEntity.mapping_code = appEntity.generateMappingCode(self.package_name)
-        appEntity.is_active = 'Y'
-        appEntity.last_update = datetime.datetime.now().strftime("%Y-%m-%d")
-        if appEntity.market_num == 2 :
-            appEntity.id = "id" + appEntity.id    
-
-        return appEntity
+        appEntity.setMarketNum(appEntity.getMarketNumByName(self.market_name))
+        appEntity.setMappingCode(appEntity.generateMappingCode(self.package_name))
+        
+        if appEntity.getMarketNum == 2 :
+            appId = "id" + self.market_appid
+        else :
+            appId = self.market_appid
+        return appEntity.setId(appId)\
+            .setAppName(self.app_name)\
+            .setDeveloperNum(0)\
+            .setCateNum(0)\
+            .setMinUseAge(0)\
+            .setIsActive("Y")\
+            .setLastUpdateCurrent()

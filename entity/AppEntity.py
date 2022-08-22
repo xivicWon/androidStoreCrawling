@@ -1,81 +1,115 @@
 import datetime
-from functools import reduce
-import json
-from typing import Dict
+from entity.Entity import Entity
 
-class AppEntity:
-    num : int
-    id : str 
-    market_num : int
-    developer_num : int
-    cate_num : int
-    app_name : str
-    min_use_age : int
-    mapping_code : str
-    is_active : str 
-    last_update : str
-        
+class AppEntity(Entity):
+    __num : int
+    __id : str 
+    __market_num : int
+    __developer_num : int
+    __cate_num : int
+    __app_name : str
+    __min_use_age : int
+    __mapping_code : str
+    __is_active : str 
+    __last_update : str
+    __rating : int 
+
+    @property
+    def getId(self):
+        return self.__id
+    
+    @property
+    def getNum(self):
+        return self.__num
+    
+    @property
+    def getAppName(self ):
+        return self.__app_name 
+    
+    @property
+    def getMarketNum( self):
+        return self.__market_num
+    
+    @property
+    def getIsActive( self):
+        return self.__is_active
+    
+    @property
+    def getDeveloperNum(self): 
+        return self.__developer_num
+    
+    @property
+    def getLastUpdate(self ):
+        return self.__last_update
+    
+    @property
+    def getRating(self):
+        return self.__rating
+    
+    
+    
     def setId(self, id ):
-        self.id = id
+        self.__id = id
+        return self
+
+    
+    def setNum(self, num ):
+        self.__num = num
         return self
 
     def setAppName(self, app_name ):
-        self.app_name = app_name 
+        self.__app_name = app_name 
         return self
 
     def setMarketNum( self, market_num):
-        self.market_num = market_num
+        self.__market_num = market_num
         return self
         
     def setIsActive( self, is_active):
-        self.is_active = is_active
+        self.__is_active = is_active
         return self
     
     def setDeveloperNum(self, developer_num): 
-        self.developer_num = developer_num 
+        self.__developer_num = developer_num 
         return self
     
-    def setLastUpdateCurrent(self  ):
-        self.last_update = datetime.datetime.now().strftime("%Y%m%d")
+    def setCateNum(self, cate_num):
+        self.__cate_num = cate_num
+        return self 
+    
+    def setMinUseAge(self, min_use_age):
+        self.__min_use_age = min_use_age
+        return self 
+    
+    def setLastUpdateCurrent(self):
+        self.__last_update = datetime.datetime.now().strftime("%Y%m%d")
         return self
-        
     
-    def setLastUpdate(self, last_update ):
-        self.last_update = last_update 
+    def setRating (self, rating) :
+        self.__rating = rating
         return self
     
-    def getId(self):
-        return self.id
+    def setLastUpdate(self, last_update:datetime.date):
+        self.__last_update = last_update.strftime("%Y%m%d")
+        return self
     
-    def getAppName(self ):
-        return self.app_name 
-
-    def getMarketNum( self):
-        return self.market_num
-        
-    def getIsActive( self):
-        return self.is_active
-    
-    def getDeveloperNum(self): 
-        return self.developer_num
-        
-    def getLastUpdate(self ):
-        return self.last_update
-    
-    
-    def toString(self):
-        return json.dumps(vars(self))
+    def setMappingCode(self, mapping_code) :
+        self.__mapping_code = mapping_code
+        return self
   
-    def ofDict(self , obj:Dict):
-        self.id = obj["id"]
-        self.app_name = obj["app_name"]
-        self.developer_num = obj["developer_num"]
-        self.market_num = obj["market_num"]
-        self.cate_num = obj["cate_num"]
-        self.min_use_age = obj["min_use_age"]
-        self.mapping_code = obj["mapping_code"]
-        self.is_active = obj["is_active"]
-        self.last_update = obj["last_update"]
+    def ofDict(self , obj:dict):
+        self.__num = obj["num"] if "num" in obj else 0
+        self.__id = obj["id"]
+        self.__app_name = obj["app_name"] 
+        self.__developer_num = obj["developer_num"]
+        self.__market_num = obj["market_num"] 
+        self.__cate_num = obj["cate_num"] 
+        self.__min_use_age = obj["min_use_age"] 
+        self.__mapping_code = obj["mapping_code"] if 'mapping_code' in obj else ""
+        self.__is_active = obj["is_active"]  if 'is_active' in obj else ""
+        # self.__last_update = obj["last_update"].strftime("%Y%m%d") if 'last_update' in obj and type(obj["last_update"]) == datetime.date else ""
+        self.setLastUpdate(obj["last_update"] if 'last_update' in obj else None)
+        self.__rating = obj["rating"] if 'rating' in obj else 0  
         return self
     
     def generateMappingCode(self, str ):
@@ -92,21 +126,3 @@ class AppEntity:
             return 2 
         elif  str == "one" :
             return 3 
-
-    def getInsertClause(self ):
-        localVariable = vars(self)
-        return "({})".format(
-            ",".join(
-                reduce(lambda acc, key : acc+["{}".format(key ) ] ,localVariable.keys(), [])
-                )
-            )
-        
-    def getInsertValueClause(self ):
-        localVariable = vars(self)
-        return "({})".format(
-            ",".join(
-                reduce(lambda acc, key : acc+["'{}'".format(localVariable[key] ) ] ,localVariable.keys(), [])
-                )
-            )
-    
-    

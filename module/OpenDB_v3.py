@@ -1,4 +1,6 @@
 from functools import reduce
+import time
+from typing import List
 import pymysql
 class OpenDB : 
     
@@ -66,3 +68,15 @@ class OpenDB :
                     print("{} SQL 오류 ".format(query)) 
                     print(e)
         
+    def insertBulk(self, query:str, fields:List[tuple]) :
+        start = time.time()
+        conn = self._connect()
+        with conn:
+            with conn.cursor() as cur:
+                try : 
+                    cur.executemany(query, fields)
+                except Exception as e : 
+                    print(query , fields)
+                    print(e)
+                finally:
+                    print("Insert Bulk Time : {}  ".format(time.time() - start  ))
