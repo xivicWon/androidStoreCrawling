@@ -1,17 +1,15 @@
+import sys, rootpath 
+sys.path.append(rootpath.detect())
 import requests, time
 from threading import Thread, current_thread 
 from multiprocessing import Process, current_process
-from dotenv import load_dotenv
-import os
+from module.EnvStore import EnvStore 
 from module.OpenDB import OpenDB
-from module.PackageRepository import PackageRepository
+from repository.PackageRepository import PackageRepository
 
-load_dotenv()
-
-host = os.environ.get("HOST")
-database = os.environ.get("DATABASE")
-user_name = os.environ.get("DATABASE_USER")
-password = os.environ.get("DATABASE_USER_PASS")
+Env = EnvStore()
+appStore = Env.getAppStore
+openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
 
 class ThreadResult:
     done_package = []
@@ -97,7 +95,7 @@ def workToThread(crwlingJob:list ) :
 
 crwlingJob = []
 start = time.time()
-openDB: OpenDB = OpenDB(host, user_name ,password, database)
+openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
 packageRepository: PackageRepository = PackageRepository(openDB)
 if __name__  == '__main__' :
     jobCount = 10000
