@@ -1,4 +1,5 @@
 import datetime
+from typing import Callable, List
 from entity.Entity import Entity
 
 class AppEntity(Entity):
@@ -13,14 +14,14 @@ class AppEntity(Entity):
     __is_active : str 
     __last_update : str
     __rating : int 
-
-    @property
-    def getId(self):
-        return self.__id
     
     @property
     def getNum(self):
         return self.__num
+    
+    @property
+    def getId(self):
+        return self.__id
     
     @property
     def getAppName(self ):
@@ -43,16 +44,18 @@ class AppEntity(Entity):
         return self.__last_update
     
     @property
+    def getMappingCode(self ):
+        return self.__mapping_code
+    
+    @property
     def getRating(self):
         return self.__rating
-    
     
     
     def setId(self, id ):
         self.__id = id
         return self
 
-    
     def setNum(self, num ):
         self.__num = num
         return self
@@ -90,7 +93,7 @@ class AppEntity(Entity):
         return self
     
     def setLastUpdate(self, last_update:datetime.date):
-        self.__last_update = last_update.strftime("%Y%m%d")
+        self.__last_update = last_update.strftime("%Y%m%d") if last_update == datetime.date else None
         return self
     
     def setMappingCode(self, mapping_code) :
@@ -111,6 +114,10 @@ class AppEntity(Entity):
         self.setLastUpdate(obj["last_update"] if 'last_update' in obj else None)
         self.__rating = obj["rating"] if 'rating' in obj else 0  
         return self
+    
+    def ofManyDict (self, objs:List[dict]) :
+        condition: Callable[[dict] , AppEntity] = lambda o : AppEntity().ofDict(o)
+        return list(map(condition, objs))
     
     def generateMappingCode(self, str ):
         if str == None : 

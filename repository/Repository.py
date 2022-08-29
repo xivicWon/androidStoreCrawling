@@ -12,7 +12,10 @@ class Repository :
     def findAppById(self, market_num:int, id:str )->Optional[AppEntity]:
         pass
     
-    def findNoNameAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+    def findAllApp(self, appEntities : List[AppEntity]) ->Optional[List[AppEntity]]:
+        pass
+    
+    def findNoNameAppLimitedTo(self , market_num:int,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         pass
     
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
@@ -21,7 +24,13 @@ class Repository :
     def findDeveloperByDeveloperMarketId(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) ->Optional[AppMarketDeveloperEntity]:
         pass
     
+    def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) ->Optional[List[AppMarketDeveloperEntity]]:
+        pass
+    
     def saveDeveloper(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) -> int:
+        pass
+    
+    def saveBulkDeveloper(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> int:
         pass
     
     def saveResource (self, appResourceEntity : AppResourceEntity): 
@@ -29,7 +38,10 @@ class Repository :
          
     def addApp ( self, appEntity : AppEntity) -> Optional[int] : 
         pass
-        
+
+    def saveBulkApp ( self, appEntities : List[AppEntity])  : 
+        pass
+    
     def updateApp( self, appEntity : AppEntity): 
         pass
     
@@ -45,3 +57,6 @@ class Repository :
     def saveAppTmpUseBulk(self, bulkResources: List[AppEntity]):
         pass
         
+    def findAppByUndefinedName(self, markeyNum :int)->List[AppEntity]:
+        pass
+    

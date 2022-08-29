@@ -4,6 +4,7 @@ from time import time
 class TimeChecker : 
     __timeLine: dict
     __ceilingLevel :int = 1000
+    
     def __init__(self) -> None:
         self.__timeLine = {}
         pass

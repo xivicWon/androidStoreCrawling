@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 class EnvStore : 
     __appStore :dict  
     
-    
     def __init__(self) -> None:
         load_dotenv()
         self.__setAppStore()

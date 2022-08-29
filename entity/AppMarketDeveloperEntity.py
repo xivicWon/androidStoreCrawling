@@ -1,7 +1,6 @@
 import json
-from typing import Dict
+from typing import Dict, List
 from entity.Entity import Entity
-
 
 class AppMarketDeveloperEntity(Entity) :
     __num : int 
@@ -59,3 +58,11 @@ class AppMarketDeveloperEntity(Entity) :
         self.__developer_market_id = obj["developer_market_id"]
         self.__group_code = obj["group_code"]
         return self
+    
+    def ofManyDict(self , objs:List[Dict])->List:
+        appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
+        for obj in objs :
+            appMarketDeveloperEntity = AppMarketDeveloperEntity()
+            appMarketDeveloperEntities.append(appMarketDeveloperEntity.ofDict(obj))
+        return appMarketDeveloperEntities
+    

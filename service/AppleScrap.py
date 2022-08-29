@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
 from threading import Thread, current_thread 
 from multiprocessing import Queue, current_process
-from dto.AppleAppDto import AppleAppDto
+from dto.AppDto import AppleAppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
 from entity.AppEntity import AppEntity
@@ -191,4 +191,4 @@ class AppleScrap :
         else :
             print("조회된 스크랩대상 데이터가 없음 {} {} {} ".format(marketNum))
             exit()
-        return crwlingJob[:2]
+        return crwlingJob

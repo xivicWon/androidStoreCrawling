@@ -7,7 +7,7 @@ from bs4.element import Tag
 from requests import get
 from threading import Thread, current_thread 
 from multiprocessing import Process, Queue, current_process
-from dto.AppleAppDto import AppleAppDto
+from dto.AppDto import AppleAppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
 from entity.AppEntity import AppEntity
@@ -141,8 +141,6 @@ def updateResponseToRepository(dtos : List[AppWithDeveloperWithResourceDto]):
     ids:List[str] = []
     
     bulkResource:List[AppResourceEntity] = []
-    
-    idScanning: Callable[[AppWithDeveloperWithResourceDto] , str] 
     
     for dto in dtos :
         currentId = dto.getAppEntity.getId

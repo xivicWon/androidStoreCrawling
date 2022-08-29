@@ -1,11 +1,8 @@
-from ast import Call
 import sys, rootpath
 sys.path.append(rootpath.detect())
 from typing import  Callable, List
-from threading import Thread, current_thread 
+from threading import Thread
 from multiprocessing import Process, Queue, current_process
-from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
-
 
 class MultiProcessThread :
     __q : Queue 
@@ -86,7 +83,7 @@ class MultiProcessThread :
         allThreadList: List[Thread] = []
         resList:List = [] 
         threadIndex = 0 
-        print("workToProcess {}".format(jobList))
+        print("workToProcess Count : {}".format(len(jobList)))
         while( len(jobList) >= 1 ):
             if len(threadlist) >= threadCount :
                 threadlist = list(filter( self.filteredAliveThread , threadlist))
