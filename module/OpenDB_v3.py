@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from functools import reduce
-import time
 from typing import List
 import pymysql
 class OpenDB : 
@@ -13,7 +13,7 @@ class OpenDB :
         self.database = database
  
     def _connect(self) :
-        return pymysql.connect(
+        conn =  pymysql.connect(
             host=self.host, 
             user=self.username, 
             passwd=self.password, 
@@ -21,7 +21,8 @@ class OpenDB :
             port=3306, 
             use_unicode=True, 
             cursorclass=pymysql.cursors.DictCursor,
-            charset='utf8')
+            charset="utf8")
+        return conn
     
     def checkVars(self):
         localValues = vars(self)
@@ -43,16 +44,19 @@ class OpenDB :
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
-                cur.execute(query, fields)
-                return cur.fetchall()
-
+                try : 
+                    cur.execute(query, fields)
+                    return cur.fetchall()
+                except pymysql.err.ProgrammingError as e :
+                    print("Error: {}".format(e))
+                return None                    
 
     def insert(self, query:str, fields:tuple) :
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
                 try : 
-                    cur.execute(query, fields)
+                    cur.execute(query=query, args=fields)
                     return cur.lastrowid
                 except Exception as e : 
                     print(query , fields)
@@ -69,7 +73,6 @@ class OpenDB :
                     print(e)
         
     def insertBulk(self, query:str, fields:List[tuple]) :
-        start = time.time()
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
@@ -78,5 +81,4 @@ class OpenDB :
                 except Exception as e : 
                     print(query , fields)
                     print(e)
-                finally:
-                    print("Insert Bulk Time : {}  ".format(time.time() - start  ))
+                     

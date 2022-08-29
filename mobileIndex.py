@@ -1,34 +1,20 @@
 import sys, rootpath
 sys.path.append(rootpath.detect())
-import requests, time, datetime, json
+import requests, datetime
 from typing import List
-from requests import post
+
 from threading import Thread
 from multiprocessing import current_process
-from dto.MobileIndexDto import MobileIndexDto
-from module.OpenDB_v2 import OpenDB 
-from module.EnvStore import EnvStore 
+from dto.mobileIndex.MobileIndexDto import MobileIndexDto
 from repository.MobileIndexRepository import MobileIndexRepository
-
-def curl(url , data , headers ):
-    res = post(url, data=json.dumps(data) , headers=headers, timeout=10)
-    try :
-        with res : 
-            if( res.status_code == 200 ):
-                return res 
-            else :
-                return None
-    except requests.exceptions.ReadTimeout: 
-        return None
-    except requests.exceptions.ConnectionError: 
-        return None
-    except requests.exceptions.ChunkedEncodingError:
-        return None
-
+from module.OpenDB_v3 import OpenDB 
+from module.EnvStore import EnvStore 
+from module.Curl import Curl 
+from module.TimeChecker import TimeChecker
 
 def getMobileIndex(url , data ):
     headers = getRequstHeader()
-    response = curl(url, headers= headers, data=data)
+    response = Curl(url, headers= headers, data=data)
     if( response != None):
         responseList.append(response)
 
@@ -44,6 +30,7 @@ def getRequstHeader  () :
         'Content-Type': 'application/json; charset=utf-8',
         'referer' : 'https://www.mobileindex.com/mi-chart/daily-rank'
     }
+
 
 def getRequestData ( appType:str) : 
     return {
@@ -78,7 +65,8 @@ mobileIndexRepository = MobileIndexRepository(openDB)
 
 if __name__  == '__main__' :
     
-    start = time.time()
+    timeChecker = TimeChecker()
+    timeChecker.start(code="main")
     responseList: List[requests.Request] = []
     startPoint = 0 
     print("작업 시작 ~ ")
@@ -86,7 +74,9 @@ if __name__  == '__main__' :
     
     for res in responseList :
         responseData = res.json()
-        dataList = list(map(lambda t: MobileIndexDto(t), responseData["data"]) )    
+        dataList = list(map(lambda t: MobileIndexDto().ofDict(t), responseData["data"]) )    
         mobileIndexRepository.save(dataList)
     
-    print(" time : {}  ".format(time.time() - start  ))
+    
+    timeChecker.stop(code="main")
+    timeChecker.display(code="main")
