@@ -7,7 +7,7 @@ from module.EnvManager import EnvManager
 from module.OpenDB import OpenDB
 from repository.PackageRepository import PackageRepository
 
-Env = EnvManager()
+Env = EnvManager.instance()
 appStore = Env.getAppStore
 openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
 

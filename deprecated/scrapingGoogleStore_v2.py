@@ -131,7 +131,7 @@ def workToMultiThread(crwlingJob:list , threadCount : int ) :
         thread.join()
             
 
-envManager = EnvManager()
+envManager = EnvManager.instance()
 openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
 googleStoreRepository:AppStoreRepository = AppStoreRepository(openDB)
 

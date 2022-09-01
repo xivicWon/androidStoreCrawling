@@ -9,7 +9,7 @@ from module.TimeChecker import TimeChecker
 from module.MultiProcessThread import MultiProcessThread
 
 def main() :
-    envManager = EnvManager()
+    envManager = EnvManager.instance()
     openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
     appScrapService:AppleScrapService = AppleScrapService(repository=appStoreRepository)        

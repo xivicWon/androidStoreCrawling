@@ -1,5 +1,6 @@
 
 from typing import List
+from LogManager import LogManager
 from dto.mobileIndex.MobileIndexDto import MobileIndexDto
 from module.OpenDB_v3 import OpenDB
 
@@ -7,7 +8,7 @@ from module.OpenDB_v3 import OpenDB
 class MobileIndexRepository :
     maxInsertClauseCount: int = 1000 
     dbManager : OpenDB
-    def __init__(self, dbManager:OpenDB) -> None:
+    def __init__(self, dbManager:OpenDB, logModule:LogManager) -> None:
         self.dbManager = dbManager
     
     def _createSaveClause(self, insertClause, insertValueClause ):

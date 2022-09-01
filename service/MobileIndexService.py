@@ -6,6 +6,7 @@ from entity.AppEntity import AppEntity
 from repository.AppStoreRepository import AppStoreRepository
 from service.Service import Service
 from module.Curl import Curl
+from module.LogModule import LogModule
 
 class MobileIndexService (Service): 
     
@@ -14,9 +15,10 @@ class MobileIndexService (Service):
     __global_rank_v2:str =  "/api/chart/global_rank_v2"
     __market_info:str =  "/api/app/market_info"
     __appStoreRepository :AppStoreRepository 
-    
-    def __init__(self, appStoreRepository):
+    __logModule: LogModule
+    def __init__(self, appStoreRepository, logModule:LogModule ):
         self.__appStoreRepository = appStoreRepository
+        self.__logModule = logModule 
         pass
 
     def __getJsonToMobileIndex(self, data ) -> dict : 
@@ -52,8 +54,9 @@ class MobileIndexService (Service):
             "referer":  self.__REFERER
         }
         url = self.__DOMAIN + self.__global_rank_v2
+        
         data = Curl.request (
-            method="post",
+            method = Curl.METHOD_POST,
             headers=headers,
             data=json.dumps(dto.toDict()),
             url=url
@@ -83,5 +86,5 @@ class MobileIndexService (Service):
                 continue
             saveAppEntities.append(appEntity)
             AppIds.append(currentId)
-        print( "insert Count : {}".format(len(saveAppEntities)))
+        self.__logModule.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(AppIds)))
         self.__appStoreRepository.saveAppMappingUseBulk(saveAppEntities)
