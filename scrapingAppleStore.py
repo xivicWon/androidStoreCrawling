@@ -5,14 +5,16 @@ from repository.AppStoreRepository import AppStoreRepository
 from service.AppleScrapService import AppleScrapService 
 from module.OpenDB_v3 import OpenDB
 from module.EnvManager import EnvManager 
+from module.LogManager import LogManager
 from module.TimeChecker import TimeChecker
 from module.MultiProcessThread import MultiProcessThread
 
 def main() :
-    envManager = EnvManager()
-    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
-    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
-    appScrapService:AppleScrapService = AppleScrapService(repository=appStoreRepository)        
+    envManager = EnvManager.instance()
+    logManager = LogManager.instance()
+    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE, logModule=logManager)
+    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager)
+    appScrapService:AppleScrapService = AppleScrapService(repository=appStoreRepository, logModule=logManager)      
     
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,

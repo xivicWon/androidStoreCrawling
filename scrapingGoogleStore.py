@@ -10,9 +10,14 @@ from module.MultiProcessThread import MultiProcessThread
 from module.LogManager import LogManager
 def main() :
     
-    envManager = EnvManager()
-    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
-    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
+    envManager = EnvManager.instance()
+    logManager = LogManager.instance()
+    openDB: OpenDB = OpenDB(host=envManager.DB_HOST, 
+                            username=envManager.DB_USER , 
+                            password=envManager.DB_PASSWORD , 
+                            database=envManager.DB_DATABASE,
+                            logModule=logManager)
+    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager )
     appScrapService:GoogleScrapService = GoogleScrapService(repository=appStoreRepository)        
     
     multiProcess = MultiProcessThread( 
@@ -23,12 +28,14 @@ def main() :
     
     offset:int = 0
     limit:int = 100
-    LogManager.info("마켓정보 Google / 프로세스 {} / 최대 쓰레드 {}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    LogManager.info("전체 정보 조외 / Offset {} / Limit {}".format( offset, limit ))
+    logManager.info("마켓정보 Google / 프로세스 {} / 최대 쓰레드 {}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
+    logManager.info("전체 정보 조외 / Offset {} / Limit {}".format( offset, limit ))
     multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM , offset=offset, limit=limit))
     # multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM , "com.myung.snsday"))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
+    
+    LogManager.listloggers()
 
 if __name__  == '__main__' :
     PROCESS_COUNT = 5

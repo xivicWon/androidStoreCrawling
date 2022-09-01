@@ -195,7 +195,7 @@ def main() :
     q.close()
     
 
-envManager = EnvManager()
+envManager = EnvManager.instance()
 openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
 appStoreRepository:AppStoreRepository = AppStoreRepository(openDB)
 

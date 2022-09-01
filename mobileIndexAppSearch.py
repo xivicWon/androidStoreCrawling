@@ -8,7 +8,7 @@ from module.TimeChecker import TimeChecker
     
 if __name__  == '__main__' :
     
-    envManager = EnvManager()
+    envManager = EnvManager.instance()
     openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
           

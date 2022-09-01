@@ -8,10 +8,13 @@ from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from entity.AppEntity import AppEntity
 from module.OpenDB_v3 import OpenDB
-from module.LogManager import LogManager
+from module.LogModule import LogModule
 class AppStoreRepository(Repository) :
-    def __init__(self, dbManager:OpenDB) -> None:
+    
+    __log : LogModule
+    def __init__(self, dbManager:OpenDB, logModule:LogModule) -> None:
         self.dbManager = dbManager
+        self.__log = logModule
         
     def findAppById(self, market_num:int, id:str )->Optional[AppEntity]:
         query = """
@@ -26,7 +29,7 @@ class AppStoreRepository(Repository) :
         if type(result) == dict : 
             return AppEntity().ofDict(result)
         else :
-            LogManager.warning("{} return is None".format(self.findAppById.__qualname__ ))
+            self.__log.warning("{} return is None".format(self.findAppById.__qualname__ ))
             return None
         
     
@@ -44,7 +47,7 @@ class AppStoreRepository(Repository) :
         if type(result) == list : 
             return list(map( lambda t : AppEntity().ofDict(t) , result )) 
         else :
-            LogManager.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
+            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
             return None
         
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
@@ -60,7 +63,7 @@ class AppStoreRepository(Repository) :
         if type(result) == list : 
             return list(map( lambda t : AppEntity().ofDict(t) , result )) 
         else :
-            LogManager.warning("{} return is None".format(self.findAppLimitedTo.__qualname__ ))
+            self.__log.warning("{} return is None".format(self.findAppLimitedTo.__qualname__ ))
             return None
         
     def findDeveloperByDeveloperMarketId(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) ->Optional[AppMarketDeveloperEntity]:
@@ -240,8 +243,8 @@ class AppStoreRepository(Repository) :
                 )
             )
         except Exception as e : 
-            LogManager.error("{} Exception : {}".format(self.addApp.__qualname__ , appEntity.toString()))
-            LogManager.error("{}".format(self.addApp.__qualname__ , e))
+            self.__log.error("{} Exception : {}".format(self.addApp.__qualname__ , appEntity.toString()))
+            self.__log.error("{}".format(self.addApp.__qualname__ , e))
             return None
 
         
@@ -264,8 +267,8 @@ class AppStoreRepository(Repository) :
                                           appEntity.getId, 
                                           appEntity.getMarketNum))
         except Exception as e : 
-            LogManager.error("{} Exception : {}".format(self.updateApp.__qualname__ , appEntity.toString()))
-            LogManager.error("{}".format(self.updateApp.__qualname__ , e))
+            self.__log.error("{} Exception : {}".format(self.updateApp.__qualname__ , appEntity.toString()))
+            self.__log.error("{}".format(self.updateApp.__qualname__ , e))
             print(e)
     
     def insertAppMappingCode( self, appEntity : AppEntity): 
@@ -292,8 +295,8 @@ class AppStoreRepository(Repository) :
                 )
             )
         except Exception as e : 
-            LogManager.error("{} Exception : {}".format(self.insertAppMappingCode.__qualname__ , appEntity.toString()))
-            LogManager.error("{}".format(self.insertAppMappingCode.__qualname__ , e))
+            self.__log.error("{} Exception : {}".format(self.insertAppMappingCode.__qualname__ , appEntity.toString()))
+            self.__log.error("{}".format(self.insertAppMappingCode.__qualname__ , e))
     
         
     def deleteApp( self, appEntity : AppEntity): 
@@ -306,8 +309,8 @@ class AppStoreRepository(Repository) :
         try : 
             self.dbManager.update(query, ( appEntity.getId, appEntity.getMarketNum))
         except Exception as e : 
-            LogManager.error("{} Exception : {}".format(self.deleteApp.__qualname__ , appEntity.toString()))
-            LogManager.error("{}".format(self.deleteApp.__qualname__ , e))
+            self.__log.error("{} Exception : {}".format(self.deleteApp.__qualname__ , appEntity.toString()))
+            self.__log.error("{}".format(self.deleteApp.__qualname__ , e))
 
 
     def findMarketScrapUrl(self , market_num ) -> Optional[List[AppMarketScrap]]:  

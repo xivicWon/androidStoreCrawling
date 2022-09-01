@@ -1,5 +1,5 @@
-import logging
 import sys, rootpath
+
 sys.path.append(rootpath.detect())
 from typing import  Callable, List
 from threading import Thread
@@ -12,7 +12,7 @@ class MultiProcessThread :
     __supplier : Callable
     __consumer : Callable
      
-    def __init__(self, processCount:int , maxThreadCount:int ,  supplier: Callable ):
+    def __init__(self, processCount:int, maxThreadCount:int , supplier: Callable ):
         self.__processCount = processCount
         self.__maxThreadCount = maxThreadCount
         self.__hasConsumer = False
@@ -26,13 +26,6 @@ class MultiProcessThread :
     
     def run(self):
         q = Queue()
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.DEBUG)
-        handlers = root_logger.handlers[:]
-        for handler in handlers:
-            print("handler = {}".format(handler.__class__))
-            handler.close()
-            root_logger.removeHandler(handler)
             
         if(self.__hasConsumer):
             consumer = Process(target=self.__consumer , name="[ consumer process ]", args=(q,))

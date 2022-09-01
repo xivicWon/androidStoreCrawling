@@ -1,28 +1,32 @@
 # -*- coding: utf-8 -*-
-import logging
 import sys, rootpath
-
 sys.path.append(rootpath.detect())
 from functools import reduce
-from typing import Final, List
-from module.LogManager import LogManager
+from typing import  List
+from module.LogModule import LogModule
 import pymysql
 class OpenDB : 
-    
+    __host:str
+    __username:str
+    __password:str
+    __database:str
+    __log:LogModule
     conn : pymysql.connect
-    def __init__(self, host:str, username:str,password:str, database:str) -> None:
-        self.host = host
-        self.username = username
-        self.password = password
-        self.database = database
- 
+    
+    def __init__(self, host:str, username:str,password:str, database:str, logModule:LogModule ) -> None:
+        self.__host = host
+        self.__username = username
+        self.__password = password
+        self.__database = database
+        self.__log = logModule
+
     def _connect(self) :
         try : 
             conn =  pymysql.connect(
-                host=self.host, 
-                user=self.username, 
-                passwd=self.password, 
-                db=self.database, 
+                host=self.__host, 
+                user=self.__username, 
+                passwd=self.__password, 
+                db=self.__database, 
                 port=3306, 
                 use_unicode=True,
                 cursorclass=pymysql.cursors.DictCursor,
@@ -58,11 +62,11 @@ class OpenDB :
                     cur.execute(query, fields)
                     return cur.fetchone()
                 except pymysql.err.ProgrammingError as e :
-                    LogManager.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
                 except pymysql.err.OperationalError as e : 
-                    LogManager.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
                 except UnicodeDecodeError as e :
-                    LogManager.error("{} UnicodeDecodeError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} UnicodeDecodeError : {}".format(self.select.__qualname__ , e))
                 return None
             
     def select(self, query:str, fields:tuple) -> list :
@@ -73,11 +77,11 @@ class OpenDB :
                     cur.execute(query, fields)
                     return cur.fetchall()
                 except pymysql.err.ProgrammingError as e :
-                    LogManager.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
                 except pymysql.err.OperationalError as e : 
-                    LogManager.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
                 except UnicodeDecodeError as e :
-                    LogManager.error("{} UnicodeDecodeError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} UnicodeDecodeError : {}".format(self.select.__qualname__ , e))
                 return None
 
     def insert(self, query:str, fields:tuple) :
@@ -88,7 +92,7 @@ class OpenDB :
                     cur.execute(query=query, args=fields)
                     return cur.lastrowid
                 except Exception as e : 
-                    LogManager.error("{} Exception : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
         
     def update(self, query:str, fields:tuple) :
         conn = self._connect()
@@ -97,7 +101,7 @@ class OpenDB :
                 try : 
                     cur.execute(query, fields)
                 except Exception as e:
-                    LogManager.error("{} Exception : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
         
     def insertBulk(self, query:str, fields:List[tuple]) :
         conn = self._connect()
@@ -106,5 +110,5 @@ class OpenDB :
                 try : 
                     cur.executemany(query, fields)
                 except Exception as e : 
-                    LogManager.error("{} Exception : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
                      

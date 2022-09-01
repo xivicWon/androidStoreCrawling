@@ -2,25 +2,29 @@ import datetime
 import sys, rootpath
 from threading import Thread
 from typing import List
+sys.path.append(rootpath.detect())
 from dto.mobileIndex.MIRequestDto import MIRequestDto
 from entity.AppEntity import AppEntity
-sys.path.append(rootpath.detect())
 from service.MobileIndexService import MobileIndexService
 from module.TimeChecker import TimeChecker
 from module.EnvManager import EnvManager
 from module.OpenDB_v3 import OpenDB
+from module.LogManager import LogManager
 from repository.AppStoreRepository import AppStoreRepository
 if __name__  == '__main__' :
     
-    envManager = EnvManager()
-    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
-    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
+    envManager = EnvManager.instance()
+    logManager = LogManager.instance()
+    openDB: OpenDB = OpenDB(host=envManager.DB_HOST, 
+                            username=envManager.DB_USER , 
+                            password=envManager.DB_PASSWORD , 
+                            database=envManager.DB_DATABASE,
+                            logModule=logManager)
     
-    
+    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager)
+    mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository, logModule=logManager)
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
-    mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository)
-    
     mIRequestDto = MIRequestDto()
     mIRequestDto.setMarket("all")
     mIRequestDto.setDate(datetime.datetime.now().strftime("%Y%m%d"))
@@ -33,7 +37,7 @@ if __name__  == '__main__' :
     
     # countries = ["kr"]
     # rankTypes = ["gross"]
-    # appTypes = ["app", "game"]
+    # appTypes = ["app"]
     appEntities:List[AppEntity] = []
     threadList:List[Thread] = []
     for country in countries :

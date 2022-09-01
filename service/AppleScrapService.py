@@ -1,4 +1,3 @@
-import re
 import sys, rootpath
 from dto.Dto import Dto
 
@@ -9,23 +8,25 @@ import requests, json
 from typing import  Callable, List
 from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
-from threading import Thread, current_thread 
-from multiprocessing import Queue, current_process
+from threading import current_thread 
+from multiprocessing import Queue
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
-from repository.AppStoreRepository import AppStoreRepository
+from module.LogModule import LogModule
 from module.Curl import Curl
 from module.TimeChecker import TimeChecker
 class AppleScrapService(Service) : 
     __MARKET_NUM:int = 2 
     __MAX_RETRY_COUNT:int = 3
     __repository:Repository
-    def __init__(self,repository:Repository) -> None:
+    __log :LogModule
+    def __init__(self,repository:Repository, logModule:LogModule) -> None:
         self.__repository = repository
+        self.__log = logModule
         pass
         
     def requestWorkListFromDB( self, marketNum:int  ) :

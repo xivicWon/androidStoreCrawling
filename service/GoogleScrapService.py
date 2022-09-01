@@ -1,10 +1,9 @@
 import sys, rootpath
-
 from repository.Repository import Repository
 from service.Service import Service
 sys.path.append(rootpath.detect())
 import requests, json
-from typing import  Callable, List
+from typing import  Callable, List, Optional
 from bs4 import BeautifulSoup as bs
 from threading import current_thread 
 from multiprocessing import Queue
@@ -18,7 +17,6 @@ from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from module.Curl import Curl
 from module.TimeChecker import TimeChecker
-from module.LogManager import LogManager
 
 class GoogleScrapService(Service) : 
     __MARKET_NUM:int = 1  
@@ -27,9 +25,9 @@ class GoogleScrapService(Service) :
     __UNDEFINED_APP_NAME: str = "undefined-app"
     __PACKAGE_URL:str = "https://play.google.com/store/apps/details?id="
     __ErrorList : dict
-    log: LogManager
     def __init__(self,repository:Repository) -> None:
         super().__init__()
+        print("-----GoogleScrapService.__init__")
         self.__repository = repository
         self.__ErrorList = {}
         self.__ErrorList["404"] = []
@@ -44,7 +42,8 @@ class GoogleScrapService(Service) :
                 url = self.__PACKAGE_URL + appEntity.getId
                 crwlingJob.append(url)
         else :
-            print("조회된 스크랩대상 데이터가 없음 {} ".format(marketNum))
+            msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
+            print(msg)
             exit()
         return crwlingJob
     
@@ -57,7 +56,8 @@ class GoogleScrapService(Service) :
                 url = self.__PACKAGE_URL + appEntity.getId
                 crwlingJob.append(url)
         else :
-            LogManager.warning("조회된 스크랩대상 데이터가 없음 {} ".format(marketNum))
+            msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
+            print(msg)
             exit()
         return crwlingJob
     
@@ -70,13 +70,16 @@ class GoogleScrapService(Service) :
             if repeatCount < self.__MAX_RETRY_COUNT :
                 self.requestUrl(requestUrl, processStack)
             else : 
-                LogManager.warning(current_thread().getName() + "ReadTimeout request Fail : {}".format(requestUrl))
+                msg = current_thread().getName() + "ReadTimeout request Fail : {}".format(requestUrl) 
+                print(msg)
                 return 
         except requests.exceptions.ConnectionError: 
-            LogManager.warning(current_thread().getName() + "ConnectionError request Fail : {}".format(requestUrl))
+            msg = current_thread().getName() + "ConnectionError request Fail : {}".format(requestUrl)
+            print(msg)
             return 
         except requests.exceptions.ChunkedEncodingError:
-            LogManager.warning(current_thread().getName() + "ChunkedEncodingError request Fail : {}".format(requestUrl))
+            msg = current_thread().getName() + "ChunkedEncodingError request Fail : {}".format(requestUrl)
+            print(msg)
             return 
 
     def requestUrl(self, requestUrl : str,  processStack:List[Dto]) :
@@ -90,13 +93,15 @@ class GoogleScrapService(Service) :
             processStack.append(self.mappingInactiveDto(emptyData))
         elif res.status_code == 429:
             self.__ErrorList["429"].append(requestUrl)
-            LogManager.warning("Too Many Request - Try it Later => {} ]".format(requestUrl))
+            msg = "Too Many Request - Try it Later => {} ]".format(requestUrl)
+            print(msg)
         else :
             appWithDeveloperEntityList = self.singleDomParser(data.getResponse())
             if type(appWithDeveloperEntityList) == AppWithDeveloperWithResourceDto :
                 processStack.append(appWithDeveloperEntityList)
             else :
-                LogManager.warning(current_thread().getName() + "getResponse Fail : {}".format(requestUrl))
+                msg = current_thread().getName() + "getResponse Fail : {}".format(requestUrl)
+                print(msg)
                 
                 
     @staticmethod
@@ -111,12 +116,14 @@ class GoogleScrapService(Service) :
             soup = bs(response.text, "html.parser")
             data = json.loads(soup.find('script', type='application/ld+json').text)
         except AttributeError as e : 
-            LogManager.warning("AttributeError] Response [status code : {} , url : {}, data : {} ]".format(response.status_code , response.url, data ))
-            LogManager.warning(e)
+            msg = "AttributeError] Response [status code : {} , url : {}, data : {} ]".format(response.status_code , response.url, data )
+            print(msg )
+            print(e)
             return None
         except TypeError as e : 
-            LogManager.warning("TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data))
-            LogManager.warning(e)
+            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
+            print(msg )
+            print(e)
             return None
             
         data["id"] = response.url.split("id=").pop()
@@ -129,8 +136,9 @@ class GoogleScrapService(Service) :
             else :
                 data["author"]["id"] = 0
         except TypeError as e : 
-            LogManager.warning("TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data))
-            LogManager.warning(e)
+            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
+            print(msg )
+            print(e)
             return None
         
         appWithDeveloperWithResourceDto = (self.mappingDto(data))
@@ -221,7 +229,8 @@ class GoogleScrapService(Service) :
                 filterDeveloperEntity:Callable[[AppMarketDeveloperEntity] , bool] = lambda t : t.getDeveloperMarketId == appMarketDeveloperEntity.getDeveloperMarketId
                 findOneAppMarketDeveloperEntity:AppMarketDeveloperEntity = next(filter( filterDeveloperEntity, findAllAppMarketDeveloperEntities), None)
                 if findOneAppMarketDeveloperEntity == None:
-                    LogManager.warning("Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString()))
+                    msg = "Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString())
+                    print(msg)
                     continue
                 appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
             appEntities.append(appEntity)
@@ -238,7 +247,8 @@ class GoogleScrapService(Service) :
                 filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
                 findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
                 if findOneAppEntity == None :
-                    LogManager.warning("Error [Not Found AppEntity] : {}".format(appEntity.toString()))
+                    msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
+                    print(msg)
                     continue
                 appResourceEntity.setAppNum(findOneAppEntity.getNum)
                 AppResourceEntities.append(appResourceEntity)
