@@ -3,7 +3,7 @@ import sys
 sys.path.append(rootpath.detect())
 
 from entity.AppEntity import AppEntity
-from module.EnvStore import EnvStore
+from module.EnvManager import EnvManager
 from module.OpenDB_v3 import OpenDB
 from repository.AppStoreRepository import AppStoreRepository
 

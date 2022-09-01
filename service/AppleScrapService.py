@@ -100,7 +100,7 @@ class AppleScrapService(Service) :
             developerMarketId = ""
         
         appMarketDeveloperEntity = AppMarketDeveloperEntity()\
-            .setDeveloperMarketId(developerMarketId)\
+            .setDeveloperMarketId(developerMarketId.lower())\
             .setDeveloperName(appleAppDto.getDeveloperName())\
             .setMarketNum(self.__MARKET_NUM)\
             .setCompanyNum(0)

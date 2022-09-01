@@ -29,8 +29,8 @@ class AppDto(Dto) :
         else :
             self.appRating = 0
         
-        self.developerId = data["author"]["id"] if "author" in data and "id" in data["author"] else ""
-        self.developerName = data["author"]["name"] if "author" in data and "name" in data["author"] else ""
+        self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
+        self.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
         if "image" in data :
             img:str = data["image"]
             self.appImage = img + "=s" + str(self.DEFAULT_IMAGE_WIDTH) + "-rw"
@@ -45,8 +45,8 @@ class AppDto(Dto) :
         self.appId = "id" + data["id"]
         self.appRating = int(data["userRating"]["value"] * 10)
         
-        self.developerId = data["relationships"]["developer"]["data"][0]["id"] if "relationships" in data and "developer" in data["relationships"] and "data" in data["relationships"]["developer"] and len(data["relationships"]["developer"]["data"]) > 0 and "id" in data["relationships"]["developer"]["data"][0] else ""
-        self.developerName = data["artistName"] if "artistName" in data else ""
+        self.developerId = parse.unquote(data["relationships"]["developer"]["data"][0]["id"]) if "relationships" in data and "developer" in data["relationships"] and "data" in data["relationships"]["developer"] and len(data["relationships"]["developer"]["data"]) > 0 and "id" in data["relationships"]["developer"]["data"][0] else ""
+        self.developerName = parse.unquote(data["artistName"]) if "artistName" in data else ""
         if "artwork" in data and "url" in data["artwork"] :
             img:str = data["artwork"]["url"]
             self.appImage = "/".join(img.split("/")[:-1]) + "/" + str(self.DEFAULT_IMAGE_WIDTH) + "x0w.webp"

@@ -4,14 +4,13 @@ sys.path.append(rootpath.detect())
 from repository.AppStoreRepository import AppStoreRepository
 from service.AppleScrapService import AppleScrapService 
 from module.OpenDB_v3 import OpenDB
-from module.EnvStore import EnvStore 
+from module.EnvManager import EnvManager 
 from module.TimeChecker import TimeChecker
 from module.MultiProcessThread import MultiProcessThread
 
 def main() :
-    Env = EnvStore()
-    appStore = Env.getAppStore
-    openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
+    envManager = EnvManager()
+    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
     appScrapService:AppleScrapService = AppleScrapService(repository=appStoreRepository)        
     

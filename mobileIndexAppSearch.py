@@ -1,5 +1,5 @@
 import sys, rootpath
-from module.EnvStore import EnvStore
+from module.EnvManager import EnvManager
 from module.OpenDB_v3 import OpenDB
 from repository.AppStoreRepository import AppStoreRepository
 sys.path.append(rootpath.detect())
@@ -8,9 +8,8 @@ from module.TimeChecker import TimeChecker
     
 if __name__  == '__main__' :
     
-    Env = EnvStore()
-    appStore = Env.getAppStore
-    openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["password"] , appStore["database"] )
+    envManager = EnvManager()
+    openDB: OpenDB = OpenDB(envManager.DB_HOST, envManager.DB_USER ,envManager.DB_PASSWORD ,envManager.DB_DATABASE )
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB)
           
     timeChecker = TimeChecker()

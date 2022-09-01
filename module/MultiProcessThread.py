@@ -1,11 +1,10 @@
+import logging
 import sys, rootpath
 sys.path.append(rootpath.detect())
 from typing import  Callable, List
 from threading import Thread
 from multiprocessing import Process, Queue, current_process
-
 class MultiProcessThread :
-    __q : Queue 
     __processCount: int 
     __maxThreadCount: int 
     __jobList : List
@@ -16,7 +15,6 @@ class MultiProcessThread :
     def __init__(self, processCount:int , maxThreadCount:int ,  supplier: Callable ):
         self.__processCount = processCount
         self.__maxThreadCount = maxThreadCount
-        self.__q = Queue()
         self.__hasConsumer = False
         self.__supplier = supplier
         pass 
@@ -27,12 +25,18 @@ class MultiProcessThread :
         return self
     
     def run(self):
-        
         q = Queue()
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
+        handlers = root_logger.handlers[:]
+        for handler in handlers:
+            print("handler = {}".format(handler.__class__))
+            handler.close()
+            root_logger.removeHandler(handler)
+            
         if(self.__hasConsumer):
             consumer = Process(target=self.__consumer , name="[ consumer process ]", args=(q,))
             consumer.start()
-            
             
         jobCount = len(self.__jobList)
         jobLengthEachProcess = max( jobCount % self.__processCount, 

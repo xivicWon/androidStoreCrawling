@@ -1,7 +1,4 @@
 import sys, rootpath
-import time
-from urllib import parse
-from dto.Dto import Dto
 
 from repository.Repository import Repository
 from service.Service import Service
@@ -9,17 +6,19 @@ sys.path.append(rootpath.detect())
 import requests, json
 from typing import  Callable, List
 from bs4 import BeautifulSoup as bs
-from bs4.element import Tag
-from threading import Thread, current_thread 
-from multiprocessing import Queue, current_process
+from threading import current_thread 
+from multiprocessing import Queue
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
+from dto.Dto import Dto
+from dto.htmlDom.Tag_A import Tag_A
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from module.Curl import Curl
 from module.TimeChecker import TimeChecker
+from module.LogManager import LogManager
 
 class GoogleScrapService(Service) : 
     __MARKET_NUM:int = 1  
@@ -27,13 +26,18 @@ class GoogleScrapService(Service) :
     __repository:Repository
     __UNDEFINED_APP_NAME: str = "undefined-app"
     __PACKAGE_URL:str = "https://play.google.com/store/apps/details?id="
-
+    __ErrorList : dict
+    log: LogManager
     def __init__(self,repository:Repository) -> None:
+        super().__init__()
         self.__repository = repository
+        self.__ErrorList = {}
+        self.__ErrorList["404"] = []
+        self.__ErrorList["429"] = []
         pass
             
     def requestWorkListFromDB( self, marketNum:int, offset:int , limit:int ) :
-        appList = self.__repository.findNoNameAppLimitedTo(marketNum,offset , limit)
+        appList = self.__repository.findNoNameAppLimitedToRecently(marketNum,offset , limit)
         crwlingJob:List[str] = []
         if type(appList) == list:
             for appEntity in appList :
@@ -45,57 +49,91 @@ class GoogleScrapService(Service) :
         return crwlingJob
     
     
-    def threadProductor(self, requestUrl : str,  obj:List[Dto]):
+    def requestWorkListFromDBTest( self, marketNum:int, id:str ) :
+        appList = [self.__repository.findAppById(marketNum, id)]
+        crwlingJob:List[str] = []
+        if type(appList) == list:
+            for appEntity in appList :
+                url = self.__PACKAGE_URL + appEntity.getId
+                crwlingJob.append(url)
+        else :
+            LogManager.warning("조회된 스크랩대상 데이터가 없음 {} ".format(marketNum))
+            exit()
+        return crwlingJob
+    
+    def threadProductor(self, requestUrl : str,  processStack:List[Dto]):
         repeatCount = 0
         try:
-            self.requestUrl(requestUrl, obj)
+            self.requestUrl(requestUrl, processStack)
         except requests.exceptions.ReadTimeout: 
             repeatCount+= 1 
             if repeatCount < self.__MAX_RETRY_COUNT :
-                self.requestUrl(requestUrl, obj)
+                self.requestUrl(requestUrl, processStack)
             else : 
-                print(current_thread().getName() + "ReadTimeout request Fail : {}".format(requestUrl))
+                LogManager.warning(current_thread().getName() + "ReadTimeout request Fail : {}".format(requestUrl))
                 return 
         except requests.exceptions.ConnectionError: 
-            print(current_thread().getName() + "ConnectionError request Fail : {}".format(requestUrl))
+            LogManager.warning(current_thread().getName() + "ConnectionError request Fail : {}".format(requestUrl))
             return 
         except requests.exceptions.ChunkedEncodingError:
-            print(current_thread().getName() + "ChunkedEncodingError request Fail : {}".format(requestUrl))
+            LogManager.warning(current_thread().getName() + "ChunkedEncodingError request Fail : {}".format(requestUrl))
             return 
 
-    def requestUrl(self, requestUrl : str,  obj:List[Dto]) :
+    def requestUrl(self, requestUrl : str,  processStack:List[Dto]) :
         res:requests.Response = Curl.request("get", requestUrl, None, None)
         data = RequestDto(requestUrl, res)
         if res.status_code == 404 :
+            self.__ErrorList["404"].append(requestUrl)
             emptyData:dict = {}
             emptyData["id"] =  data.getUrl().split("?id=")[1]
             emptyData["is_active"] = "N"
-            obj.append(self.mappingInactiveDto(emptyData))
+            processStack.append(self.mappingInactiveDto(emptyData))
         elif res.status_code == 429:
-            print("Too Many Request - Try it Later => {} ]".format(requestUrl))
+            self.__ErrorList["429"].append(requestUrl)
+            LogManager.warning("Too Many Request - Try it Later => {} ]".format(requestUrl))
         else :
             appWithDeveloperEntityList = self.singleDomParser(data.getResponse())
             if type(appWithDeveloperEntityList) == AppWithDeveloperWithResourceDto :
-                obj.append(appWithDeveloperEntityList)
+                processStack.append(appWithDeveloperEntityList)
             else :
-                time.sleep(1)
-                print(current_thread().getName() + "getResponse Fail : {}".format(requestUrl))  
+                LogManager.warning(current_thread().getName() + "getResponse Fail : {}".format(requestUrl))
                 
+                
+    @staticmethod
+    def filterDeveloperId( obj) :
+        href = Tag_A.of(obj).getHref
+        return href.startswith("/store/apps/dev") or href.startswith("/store/apps/dev")
+    
     def singleDomParser(self, response:requests.Response )->AppWithDeveloperWithResourceDto:
         
         appWithDeveloperWithResourceDto:AppWithDeveloperWithResourceDto
         try : 
             soup = bs(response.text, "html.parser")
             data = json.loads(soup.find('script', type='application/ld+json').text)
-            data["id"] = response.url.split("id=").pop()
-            data["author"]["id"] = soup.find("a", string=data['author']['name'])["href"]\
-                .replace("/store/apps/developer?id=", "")\
-                .replace("/store/apps/dev?id=", "")
-            appWithDeveloperWithResourceDto = (self.mappingDto(data))
-            
         except AttributeError as e : 
-            print("Response [status code : {} , url : {} ]".format(response.status_code , response.url))
+            LogManager.warning("AttributeError] Response [status code : {} , url : {}, data : {} ]".format(response.status_code , response.url, data ))
+            LogManager.warning(e)
             return None
+        except TypeError as e : 
+            LogManager.warning("TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data))
+            LogManager.warning(e)
+            return None
+            
+        data["id"] = response.url.split("id=").pop()
+        try : 
+            aTags = soup.find_all("a")
+            filteredATag = next(filter( GoogleScrapService.filterDeveloperId , aTags) , None) 
+            developerIDUrl = Tag_A().of(filteredATag).getHref
+            if type(developerIDUrl) == str : 
+                data["author"]["id"] = developerIDUrl.split("?id=")[1]
+            else :
+                data["author"]["id"] = 0
+        except TypeError as e : 
+            LogManager.warning("TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data))
+            LogManager.warning(e)
+            return None
+        
+        appWithDeveloperWithResourceDto = (self.mappingDto(data))
         return appWithDeveloperWithResourceDto
     
     def mappingInactiveDto(self, data:dict ):
@@ -123,7 +161,7 @@ class GoogleScrapService(Service) :
         appDto = AppDto().ofGoogle(data)
         
         appMarketDeveloperEntity = AppMarketDeveloperEntity()\
-            .setDeveloperMarketId(parse.unquote(data["author"]["id"]))\
+            .setDeveloperMarketId(data["author"]["id"])\
             .setDeveloperName(appDto.getDeveloperName())\
             .setMarketNum(self.__MARKET_NUM)\
             .setCompanyNum(0)
@@ -147,7 +185,6 @@ class GoogleScrapService(Service) :
             .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
             .setAppResourceEntity(appResourceEntity)
 
-
     def consumerProcess(self, q: Queue):
         responseResults:List[AppWithDeveloperWithResourceDto] = []
         while ( True ):
@@ -166,13 +203,13 @@ class GoogleScrapService(Service) :
         for dto in dtos :
             if dto.getAppMarketDeveloperEntity != None :
                 appMarketDeveloperEntities.append(dto.getAppMarketDeveloperEntity)
-            
+                
         if len(appMarketDeveloperEntities) > 0 :
             self.__repository.saveBulkDeveloper(appMarketDeveloperEntities)
             findAllAppMarketDeveloperEntities = self.__repository.findAllDeveloperByDeveloperMarketId(appMarketDeveloperEntities)  
         else :
             findAllAppMarketDeveloperEntities = []
-            
+        
         timeChecker.stop(code="Repository-Developer")
         #2. app 등록 및 번호조회
         timeChecker.start(code="Repository-App")
@@ -184,7 +221,7 @@ class GoogleScrapService(Service) :
                 filterDeveloperEntity:Callable[[AppMarketDeveloperEntity] , bool] = lambda t : t.getDeveloperMarketId == appMarketDeveloperEntity.getDeveloperMarketId
                 findOneAppMarketDeveloperEntity:AppMarketDeveloperEntity = next(filter( filterDeveloperEntity, findAllAppMarketDeveloperEntities), None)
                 if findOneAppMarketDeveloperEntity == None:
-                    print("Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString()))
+                    LogManager.warning("Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString()))
                     continue
                 appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
             appEntities.append(appEntity)
@@ -201,7 +238,7 @@ class GoogleScrapService(Service) :
                 filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
                 findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
                 if findOneAppEntity == None :
-                    print("Error [Not Found AppEntity] : {}".format(appEntity.toString()))
+                    LogManager.warning("Error [Not Found AppEntity] : {}".format(appEntity.toString()))
                     continue
                 appResourceEntity.setAppNum(findOneAppEntity.getNum)
                 AppResourceEntities.append(appResourceEntity)

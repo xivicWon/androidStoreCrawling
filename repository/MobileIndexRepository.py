@@ -1,6 +1,6 @@
 
 from typing import List
-from dto.MobileIndexDto import MobileIndexDto
+from dto.mobileIndex.MobileIndexDto import MobileIndexDto
 from module.OpenDB_v3 import OpenDB
 
 

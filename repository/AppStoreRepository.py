@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-from typing import List, Optional
+from logging import Logger
+from typing import Final, List, Optional, Tuple
+
 from repository.Repository import Repository
 from entity.AppMarketScrap import AppMarketScrap
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from entity.AppEntity import AppEntity
 from module.OpenDB_v3 import OpenDB
-
+from module.LogManager import LogManager
 class AppStoreRepository(Repository) :
-    
     def __init__(self, dbManager:OpenDB) -> None:
         self.dbManager = dbManager
         
@@ -20,21 +21,31 @@ class AppStoreRepository(Repository) :
                 AND id = %s
         """
         field = (market_num, id)
-        result = self.dbManager.select(query ,field)
-        return AppEntity().ofDict(result[0]) if type(result) == list else None
+        result = self.dbManager.selectOne(query ,field)
+        
+        if type(result) == dict : 
+            return AppEntity().ofDict(result)
+        else :
+            LogManager.warning("{} return is None".format(self.findAppById.__qualname__ ))
+            return None
         
     
-    def findNoNameAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+    def findNoNameAppLimitedToRecently(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         query = """
             SELECT  *
             FROM    app
             WHERE   app_name IS NULL
                 AND market_num = %s
+            ORDER BY num DESC
             LIMIT   %s , %s
         """
         field = (market_num, offset , limit)
         result = self.dbManager.select(query ,field)
-        return list(map( lambda t : AppEntity().ofDict(t) , result )) if type(result) == list else None
+        if type(result) == list : 
+            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+        else :
+            LogManager.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
+            return None
         
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         query = """
@@ -45,8 +56,12 @@ class AppStoreRepository(Repository) :
         """
         field = (market_num, offset , limit)
         result = self.dbManager.select(query ,field)
-        return list(map( lambda t : AppEntity().ofDict(t) , result )) if type(result) == list else None
         
+        if type(result) == list : 
+            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+        else :
+            LogManager.warning("{} return is None".format(self.findAppLimitedTo.__qualname__ ))
+            return None
         
     def findDeveloperByDeveloperMarketId(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) ->Optional[AppMarketDeveloperEntity]:
         query = """
@@ -65,30 +80,41 @@ class AppStoreRepository(Repository) :
         )
         return AppMarketDeveloperEntity().ofDict(result[0]) if type(result) == list  else None
     
-    def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) ->Optional[List[AppMarketDeveloperEntity]]:
+    def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
+        query = """
+            SELECT  *
+            FROM    app_market_developer
+            
+        """
+        
+        result = self.dbManager.select(
+            query, ()
+        )
+        return AppMarketDeveloperEntity().ofManyDict(result) if type(result) == list  else []
+    
+    def findAllDeveloperByDeveloperMarketId_(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
         query = """
             SELECT  *
             FROM    app_market_developer
             WHERE   market_num in %s 
                 AND developer_market_id in %s
-                AND developer_name in %s
         """
         marketNums:List[int] = []
         developerMarketId:List[str] = []
-        developerName:List[str] = []
+        
         for appMarketDeveloperEntity in appMarketDeveloperEntities : 
             marketNums.append(appMarketDeveloperEntity.getMarketNum)
             developerMarketId.append(appMarketDeveloperEntity.getDeveloperMarketId)
-            developerName.append(appMarketDeveloperEntity.getDeveloperName)
+        
         marketNums = list(set(marketNums))
         result = self.dbManager.select(
             query, (
                 marketNums, 
-                developerMarketId,
-                developerName
+                developerMarketId
             )
         )
         return AppMarketDeveloperEntity().ofManyDict(result) if type(result) == list  else []
+    
     
     
     def findAllApp(self, appEntities : List[AppEntity]) ->Optional[List[AppEntity]]:
@@ -115,17 +141,14 @@ class AppStoreRepository(Repository) :
         return AppEntity().ofManyDict(result) if type(result) == list  else []
     
     def saveDeveloper(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) -> int:
-        try : 
-            query = """
-                INSERT INTO app_market_developer ( market_num , company_num, developer_name, developer_market_id ) 
-                VALUES ( %s , %s , %s,  %s) 
-                ON DUPLICATE KEY UPDATE 
-                    developer_name = values(developer_name)
-                    
-            """
-        except Exception as e : 
-            # 쿼리 자체 에러.
-            raise Exception("Error in generate Query ", e)
+
+        query = """
+            INSERT INTO app_market_developer ( market_num , company_num, developer_name, developer_market_id ) 
+            VALUES ( %s , %s , %s,  %s) 
+            ON DUPLICATE KEY UPDATE 
+                developer_name = values(developer_name)
+                
+        """
         return self.dbManager.insert(query, (appMarketDeveloperEntity.getMarketNum, 
                                              appMarketDeveloperEntity.getCompanyNum, 
                                              appMarketDeveloperEntity.getDeveloperName,
@@ -133,18 +156,16 @@ class AppStoreRepository(Repository) :
     
     
     def saveBulkDeveloper(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> int:
-        try : 
-            query = """
-                INSERT INTO app_market_developer ( market_num , company_num, developer_name, developer_market_id ) 
-                VALUES ( %s , %s , %s,  %s) 
-                ON DUPLICATE KEY UPDATE 
-                    developer_name = values(developer_name)
-            """
-        except Exception as e : 
-            # 쿼리 자체 에러.
-            raise Exception("Error in generate Query ", e)
-        
-        fields = []
+ 
+        query = """
+            INSERT INTO app_market_developer ( market_num , company_num, developer_name, developer_market_id ) 
+            VALUES ( %s , %s , %s,  %s) 
+            ON DUPLICATE KEY UPDATE 
+                developer_name = values(developer_name),
+                developer_market_id = values(developer_market_id)
+        """
+    
+        fields:List[Tuple] = []
         for appMarketDeveloperEntity in appMarketDeveloperEntities :
             fields.append((
                 appMarketDeveloperEntity.getMarketNum, 
@@ -156,14 +177,11 @@ class AppStoreRepository(Repository) :
     
     
     def saveResource (self, appResourceEntity : AppResourceEntity): 
-        try : 
-            query = """
-                INSERT IGNORE INTO apps_resource ( app_num, resource_type, path ) 
-                VALUES ( %s, %s, %s) 
-            """
-        except Exception as e : 
-            # 쿼리 자체 에러.
-            raise Exception("Error in generate Query ", e)
+
+        query = """
+            INSERT IGNORE INTO apps_resource ( app_num, resource_type, path ) 
+            VALUES ( %s, %s, %s) 
+        """
         return self.dbManager.insert(query, (appResourceEntity.getAppNum, 
                                              appResourceEntity.getResourceType, 
                                              appResourceEntity.getPath ))
@@ -222,8 +240,8 @@ class AppStoreRepository(Repository) :
                 )
             )
         except Exception as e : 
-            print("[ERROR : {}".format(appEntity.toString()))
-            print(e)
+            LogManager.error("{} Exception : {}".format(self.addApp.__qualname__ , appEntity.toString()))
+            LogManager.error("{}".format(self.addApp.__qualname__ , e))
             return None
 
         
@@ -246,7 +264,8 @@ class AppStoreRepository(Repository) :
                                           appEntity.getId, 
                                           appEntity.getMarketNum))
         except Exception as e : 
-            print("[ERROR : {}".format(appEntity.toString()))
+            LogManager.error("{} Exception : {}".format(self.updateApp.__qualname__ , appEntity.toString()))
+            LogManager.error("{}".format(self.updateApp.__qualname__ , e))
             print(e)
     
     def insertAppMappingCode( self, appEntity : AppEntity): 
@@ -273,8 +292,8 @@ class AppStoreRepository(Repository) :
                 )
             )
         except Exception as e : 
-            print("[ERROR : {}".format(appEntity.toString()))
-            print(e)
+            LogManager.error("{} Exception : {}".format(self.insertAppMappingCode.__qualname__ , appEntity.toString()))
+            LogManager.error("{}".format(self.insertAppMappingCode.__qualname__ , e))
     
         
     def deleteApp( self, appEntity : AppEntity): 
@@ -287,8 +306,8 @@ class AppStoreRepository(Repository) :
         try : 
             self.dbManager.update(query, ( appEntity.getId, appEntity.getMarketNum))
         except Exception as e : 
-            print("[ERROR : {}".format(appEntity.toString()))
-            print(e)
+            LogManager.error("{} Exception : {}".format(self.deleteApp.__qualname__ , appEntity.toString()))
+            LogManager.error("{}".format(self.deleteApp.__qualname__ , e))
 
 
     def findMarketScrapUrl(self , market_num ) -> Optional[List[AppMarketScrap]]:  

@@ -8,7 +8,7 @@ from multiprocessing import current_process
 from dto.mobileIndex.MobileIndexDto import MobileIndexDto
 from repository.MobileIndexRepository import MobileIndexRepository
 from module.OpenDB_v3 import OpenDB 
-from module.EnvStore import EnvStore 
+from module.EnvManager import EnvManager 
 from module.Curl import Curl 
 from module.TimeChecker import TimeChecker
 

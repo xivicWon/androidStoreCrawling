@@ -1,16 +1,18 @@
+
+import sys, rootpath 
+sys.path.append(rootpath.detect())
 import requests, time, json
 from typing import Callable, List
 from urllib import parse
 from bs4 import BeautifulSoup as bs
-from requests import get
+from requests import post, get
 from threading import Thread, current_thread 
 from multiprocessing import Process, current_process
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from module.OpenDB_v3 import OpenDB
 from repository.AppStoreRepository import AppStoreRepository
-from module.EnvStore import EnvStore 
-
+from module.EnvManager import EnvManager
 
 def curl(url:str)->requests.Response: 
     res = get(url, timeout=3)
@@ -35,7 +37,7 @@ def crawlingGoogle(id : str):
             parsingToGoogle(id, res)
         elif res.status_code == 404 :
             notFoundGoogleParsing(id)
-
+ 
     except requests.exceptions.ReadTimeout: 
         return 
         # print(current_thread().getName() + " request Fail : {}".format(requestUrl))
@@ -45,7 +47,6 @@ def crawlingGoogle(id : str):
     except requests.exceptions.ChunkedEncodingError:
         return 
     
-    print( "\tps : {} ".format( current_thread().getName()))
 
 def parsingToGoogle(id : str, res :requests.Response ):
     
@@ -69,14 +70,14 @@ def parsingToGoogle(id : str, res :requests.Response ):
             developNum = googleStoreRepository.saveDeveloper(appMarketDeveloperEntity)
             if developNum == 0 :
                 result = googleStoreRepository.findDeveloperByDeveloperMarketId(appMarketDeveloperEntity)
-                developNum = result.getNum
+                developNum = result.getNum 
         except Exception as e : 
             print(e )
             exit()
     else :
-        developNum = result.getNum    
+        developNum = result.getNum   
         
-    # print( "\tps : {} - id : {} - developer - {}".format( current_thread().getName(), id, appMarketDeveloperEntity.developer_name))
+    print( "\tps : {} - th : {} - id : {} - developer - {}".format( current_process().name, current_thread().getName(), id, appMarketDeveloperEntity.developer_name))
     appEntity = AppEntity()
     appEntity.setId(id).setAppName(data['name']).setMarketNum(marketNum).setIsActive('Y').setLastUpdateCurrent()
     if developNum : 
@@ -86,7 +87,7 @@ def parsingToGoogle(id : str, res :requests.Response ):
     
 
 def notFoundGoogleParsing(id : str):
-    # print( "\tps : {} - id : {} - developer - {}".format( current_thread().getName(), id, ''))
+    print( "\tps : {} - th : {} - id : {} - developer - {}".format( current_process().name, current_thread().getName(), id, ''))
     marketNum = 1 
     appEntity = AppEntity()
     appEntity.setId(id).setAppName('').setMarketNum(marketNum).setIsActive('N').setDeveloperNum(0).setLastUpdateCurrent()
@@ -101,35 +102,29 @@ def filteredAliveThread(t:Thread):
         return False
 
 
-def workToSingleThread(crwlingJob:list ) :
+def workToThread(crwlingJob:list ) :
     processName = current_process().name
-    print("{} thread working Count : {}".format(processName, len(crwlingJob)))
-    while( len(crwlingJob) >= 1 ):
-        url = crwlingJob.pop()
-        crawlingGoogle(url)
-
-def workToMultiThread(crwlingJob:list , threadCount : int ) :
-    processName = current_process().name
-    maxThreadCount = threadCount
+    maxThreadCount = 100
     print("{} thread working Count : {}".format(processName, len(crwlingJob)))
     threadlist: List[Thread] = []
-    allThreadList: List[Thread] = []
-    threadIndex = 1 
+    
     while( len(crwlingJob) >= 1 ):
         if len(threadlist) >= maxThreadCount :
             # 전체 내역중에 종료된 내역이 있는지 체크.
             threadlist = list(filter( filteredAliveThread , threadlist))
         else :
             url = crwlingJob.pop()
-            workThread = Thread(target=crawlingGoogle , name="{} [{}th thread ]".format(processName, threadIndex), args=(url,))
-            threadIndex += 1 
+            workThread = Thread(target=crawlingGoogle , name="{} [{}th thread ]".format(processName, len(threadlist)), args=(url,))
             threadlist.append(workThread)
-            allThreadList.append(workThread)
             workThread.start()
             
-    for thread in allThreadList:
-        thread.join()
+        for thread in threadlist:
+            thread.join()
             
+
+    for thread in threadlist:
+        thread.join()
+
 
 Env = EnvStore()
 appStore = Env.getAppStore
@@ -137,14 +132,12 @@ openDB: OpenDB = OpenDB(appStore["host"], appStore["user_name"]  ,appStore["pass
 googleStoreRepository:AppStoreRepository = AppStoreRepository(openDB)
 
 if __name__  == '__main__' :
-    MAX_PROCESS_COUNT = 6
-    THREAD_COUNT = 100
     start = time.time()
     offset = 0
-    limit = 4000
+    limit = 100
     # Google MarketNum
     marketNum = 1 
-    appList = googleStoreRepository.findNoNameAppLimitedTo(marketNum, offset, limit)
+    appList = googleStoreRepository.findNoNameAppLimitedTo(marketNum, offset,limit)
     if type(appList) == list:
         mappingAppEntityId : Callable[[AppEntity], str] = lambda t : t.getId() 
         crwlingJob = list(map( mappingAppEntityId , appList ) )
@@ -152,10 +145,11 @@ if __name__  == '__main__' :
         print("조회결과 없음 {} {} {} ".format(marketNum, offset, limit))
         exit()
     jobCount = len(crwlingJob)
+    MAX_PROCESS_COUNT = 4
     jobLengthEachProcess = max( jobCount % MAX_PROCESS_COUNT, int(jobCount / MAX_PROCESS_COUNT))
     processList: List[Process] = []
     startPoint = 0 
-    print("Process : {}  total job length : {} each work : {} ".format(MAX_PROCESS_COUNT, jobCount, jobLengthEachProcess ))
+    print(" process : {}  total job length : {} each work : {} ".format(MAX_PROCESS_COUNT, jobCount, jobLengthEachProcess ))
     print("총 {} 건 작업 시작~ ".format(len(crwlingJob)) )
     if len(crwlingJob) > jobLengthEachProcess :
         processNum = 1
@@ -164,10 +158,10 @@ if __name__  == '__main__' :
             if len(processJob) > 0 : 
                 del crwlingJob[:jobLengthEachProcess]
                 print (processJob)
-                processList.append( Process(target=workToMultiThread , name="[ {}th process ]".format(processNum), args=(processJob, THREAD_COUNT) ))
+                processList.append( Process(target=workToThread , name="[ {}th process ]".format(processNum), args=(processJob,) ))
                 processNum += 1 
     else :
-        processList.append( Process(target=workToMultiThread , name="[ 0th process ]", args=(crwlingJob, THREAD_COUNT)))
+        processList.append( Process(target=workToThread , name="[ 0th process ]", args=(crwlingJob,)))
     
     print("processlist Count {}".format(len(processList)))
 
@@ -179,4 +173,4 @@ if __name__  == '__main__' :
         process.join()
         print(process.name + " >> {}".format("LIVE" if process.is_alive() else "DIE"))
 
-    print("Time : {}  ".format(time.time() - start  ))
+    print(" time : {}  ".format(time.time() - start  ))
