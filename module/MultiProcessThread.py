@@ -78,9 +78,11 @@ class MultiProcessThread :
         processName = current_process().name
         threadlist: List[Thread] = []
         allThreadList: List[Thread] = []
-        resList:List = [] 
+        responseList:List = [] 
+        errorList : List = []
         threadIndex = 0 
-        print("workToProcess Count : {}".format(len(jobList)))
+        jobCount = len(jobList)
+        print("workToProcess Count : {0:,}".format(jobCount))
         while( len(jobList) >= 1 ):
             if len(threadlist) >= threadCount :
                 threadlist = list(filter( self.filteredAliveThread , threadlist))
@@ -91,7 +93,7 @@ class MultiProcessThread :
                 workThread = Thread(
                     target=callBack ,
                     name="{} [{}th thread ]".format(processName, threadIndex), 
-                    args=(objItem, resList, )
+                    args=(objItem, responseList, errorList, )
                 )
                 threadlist.append(workThread)
                 allThreadList.append(workThread)
@@ -99,8 +101,11 @@ class MultiProcessThread :
                 
         for thread in allThreadList:
             thread.join()
-            
-        q.put(resList)
+        
+        info = "{}'s Result ]  {} / {} ".format(processName , len(responseList), jobCount)
+        q.put(info)
+        q.put(responseList)
+        q.put(errorList)
             
     def filteredAliveThread(self, t : Thread):
         if t.is_alive() :

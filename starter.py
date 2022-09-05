@@ -15,10 +15,10 @@ if __name__ == "__main__":
     mobileIndexRank ="mobileIndexRank.py"
     scrapingGoogleStore ="scrapingGoogleStore.py" 
     # processingFiles = [mobileIndexRank,scrapingAppleStore, scrapingGoogleStore]
-    # processingFiles = [scrapingGoogleStore]
-    processingFiles = [mobileIndexRank]
+    processingFiles = [scrapingGoogleStore]
+    # processingFiles = [mobileIndexRank]
     for file in processingFiles : 
         logManager.info("##################################")
         logManager.info("# Start File : {} ".format(file))
         logManager.info("##################################")
-        exec(open( file=file,encoding="utf8" ).read())
+        exec(open( file=file,encoding="UTF8" ).read())

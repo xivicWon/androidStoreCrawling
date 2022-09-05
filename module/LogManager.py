@@ -3,9 +3,9 @@ import logging, rootpath, os
 from multiprocessing import current_process
 from typing import Callable
 from module.LogModule import LogModule
-from module.SingletonInstane import SingletonInstane
+from module.SingletonInstance import SingletonInstance
 from module.EnvManager import EnvManager
-class LogManager(SingletonInstane, LogModule):
+class LogManager(SingletonInstance, LogModule):
     __statusLogFileHandler : bool = False
     __statusErrorFileHandler : bool = False
     __env : EnvManager

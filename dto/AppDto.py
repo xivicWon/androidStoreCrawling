@@ -29,8 +29,10 @@ class AppDto(Dto) :
         else :
             self.appRating = 0
         
+        # self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
+        # self.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
         self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
-        self.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
+        self.developerName = data["author"]["name"] if "author" in data and "name" in data["author"] else ""
         if "image" in data :
             img:str = data["image"]
             self.appImage = img + "=s" + str(self.DEFAULT_IMAGE_WIDTH) + "-rw"

@@ -30,9 +30,9 @@ class OpenDB :
                 port=3306, 
                 use_unicode=True,
                 cursorclass=pymysql.cursors.DictCursor,
-                charset="utf8mb4",
-                init_command= "SET NAMES utf8mb4"
+                charset="utf8mb4"
             )
+            conn.set_charset("utf8mb4")
         except pymysql.err.OperationalError as e : 
             print("계정설정을 확인해주세요.")
             print(e)
@@ -63,6 +63,7 @@ class OpenDB :
                     return cur.fetchone()
                 except pymysql.err.ProgrammingError as e :
                     self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error(query % fields)
                 except pymysql.err.OperationalError as e : 
                     self.__log.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
                 except UnicodeDecodeError as e :
@@ -78,6 +79,7 @@ class OpenDB :
                     return cur.fetchall()
                 except pymysql.err.ProgrammingError as e :
                     self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
+                    self.__log.error(query % fields)
                 except pymysql.err.OperationalError as e : 
                     self.__log.error("{} OperationalError : {}".format(self.select.__qualname__ , e))
                 except UnicodeDecodeError as e :
@@ -107,7 +109,7 @@ class OpenDB :
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
-                try : 
+                try :
                     cur.executemany(query, fields)
                 except Exception as e : 
                     self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))

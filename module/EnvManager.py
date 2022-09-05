@@ -1,9 +1,8 @@
 import os
 from dotenv import load_dotenv
+from module.SingletonInstance import SingletonInstance
 
-from module.SingletonInstane import SingletonInstane
-
-class EnvManager(SingletonInstane) : 
+class EnvManager(SingletonInstance) : 
     
     DB_HOST: str
     DB_USER: str
