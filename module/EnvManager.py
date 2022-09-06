@@ -21,7 +21,6 @@ class EnvManager(SingletonInstance) :
     LOG_ERROR_NAME:str
     LOG_ERROR_MAX_DAY:int
     def __init__(self) -> None:
-        print("EnvManager.__Init__")
         load_dotenv()
         self.__setEnv()
         pass

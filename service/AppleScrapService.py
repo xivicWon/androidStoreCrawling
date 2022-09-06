@@ -1,32 +1,35 @@
 import sys, rootpath
-from dto.Dto import Dto
+import time
 
-from repository.Repository import Repository
-from service.Service import Service
 sys.path.append(rootpath.detect())
 import requests, json
 from typing import  Callable, List
 from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
-from threading import current_thread 
 from multiprocessing import Queue
+from dto.Dto import Dto
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
+from dto.ErrorDto import ErrorCode, ErrorDto
+from repository.Repository import Repository
+from service.Service import Service
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
-from module.LogModule import LogModule
-from module.Curl import Curl
+from module.EnvManager import EnvManager
+from module.LogManager import LogManager
+from module.Curl import CurlMethod, Curl
 from module.TimeChecker import TimeChecker
+from urllib import error as UrllibError
+from exception.TooManyRequest import TooManyRequest
+
 class AppleScrapService(Service) : 
     __MARKET_NUM:int = 2 
     __MAX_RETRY_COUNT:int = 3
     __repository:Repository
-    __log :LogModule
-    def __init__(self,repository:Repository, logModule:LogModule) -> None:
+    def __init__(self,repository:Repository) -> None:
         self.__repository = repository
-        self.__log = logModule
         pass
         
     def requestWorkListFromDB( self, marketNum:int  ) :
@@ -41,53 +44,70 @@ class AppleScrapService(Service) :
             exit()
         return crwlingJob
     
-    def requestUrl(self, requestUrl : str,  obj:List[Dto] ):
-        res:requests.Response = Curl.request(method="get", url=requestUrl, headers=None, data=None ,timeout=15)
-        data = RequestDto(requestUrl, res)
-        appWithDeveloperEntityList = self.domParser(data.getResponse())
-        if type(appWithDeveloperEntityList) == list :
-            obj.extend(appWithDeveloperEntityList)
-            return 
-        else :
-            print(current_thread().getName() + "getResponse Fail : {}".format(requestUrl))
-
-    def threadProductor(self, requestUrl : str,  obj:List[Dto] ):
+            
+    def threadProductor(self, requestUrl : str,  processStack:List[Dto], errorStack:List[ErrorDto] ):
         repeatCount = 0
         try:
-            self.requestUrl(requestUrl, obj)
+            self.requestUrl(requestUrl, processStack, errorStack)
         except requests.exceptions.ReadTimeout: 
-            repeatCount += 1
-            if repeatCount < self.__MAX_RETRY_COUNT :
-                self.requestUrl(requestUrl, obj)
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "repeatCount : {} request URL : {}".format(repeatCount, requestUrl)))
+            # repeatCount+= 1 
+            # if repeatCount < self.__MAX_RETRY_COUNT :
+            #     self.requestUrl(requestUrl, processStack, errorStack)
+            # else : 
+            #     errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "repeatCount : {} request URL : {}".format(repeatCount, requestUrl)))
+        except AttributeError:
+            errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , requestUrl))
+        except UrllibError.URLError :
+            errorStack.append(ErrorDto.build(ErrorCode.URL_OPRN_ERROR , requestUrl))
+        except TooManyRequest:
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
+            
+    def requestUrl(self, requestUrl : str,  processStack:List[Dto] , errorStack:List[ErrorDto]):
+        try :
+            res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=None, data=None ,timeout=10)
+            data = RequestDto(requestUrl, res)
+            
+            if res.status_code != 200:
+                raise requests.exceptions.ReadTimeout(requestUrl)
+            elif res.status_code == 429:
+                raise TooManyRequest(requestUrl)
+            
+            appWithDeveloperEntityList:List[AppWithDeveloperWithResourceDto] = self.domParser(data.getResponse())
+            if type(appWithDeveloperEntityList) == list :
+                processStack.extend(appWithDeveloperEntityList)
             else :
-                print(current_thread().getName() + "ReadTimeout request Fail : {}".format(requestUrl))
-                return 
+                errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , requestUrl))
+                
         except requests.exceptions.ConnectionError: 
-            print(current_thread().getName() + "ConnectionError request Fail : {}".format(requestUrl))
-            return 
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , requestUrl))
         except requests.exceptions.ChunkedEncodingError:
-            print(current_thread().getName() + "ChunkedEncodingError request Fail : {}".format(requestUrl))
-            return 
-
+            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
+        except AttributeError as e : 
+            errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , e))
+        except TypeError as e : 
+            errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , e))
+            
     def domParser(self, response:requests.Response )->List[AppWithDeveloperWithResourceDto]:
         try : 
             soup = bs(response.text, "html.parser")
             scripts:List[Tag] = soup.findAll('script', type="fastboot/shoebox", id=lambda x : x and x.startswith('shoebox-kr-limit-100-genreId-'))
-            if len(scripts) > 0 :
+            try : 
                 listData = scripts[0].text
                 data = json.loads(listData)
-                parsingResult = []
-                try : 
-                    if( type(data["chartsList"]["data"]) == list and len(data["chartsList"]["data"]) > 0 ):
-                        for data in data["chartsList"]["data"] :
-                            parsingResult.append(self.mappingDto(data))
-                        return parsingResult
-                except Exception as e : 
-                    print(e) 
-            return None
+                if( type(data["chartsList"]["data"]) == list and len(data["chartsList"]["data"]) > 0 ):
+                    parsingResult = []
+                    for data in data["chartsList"]["data"] :
+                        parsingResult.append(self.mappingDto(data))
+                    return parsingResult
+            except Exception as e : 
+                raise Exception(e)
         except AttributeError as e : 
-            print(e)
-            return None
+            msg = "domParser] data : {} ]".format(e)
+            raise AttributeError(msg)
+        except TypeError as e : 
+            msg = "domParser] data : {} ]".format( e)
+            raise TypeError(msg)
 
     def mappingDto (self, data:dict ):
         appleAppDto = AppDto().ofApple(data)   
@@ -105,7 +125,7 @@ class AppleScrapService(Service) :
             .setDeveloperName(appleAppDto.getDeveloperName())\
             .setMarketNum(self.__MARKET_NUM)\
             .setCompanyNum(0)
-            
+        
         appEntity = AppEntity()\
             .setAppName(appleAppDto.getAppName())\
             .setId(appleAppDto.getAppId())\
@@ -118,7 +138,7 @@ class AppleScrapService(Service) :
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\
             .setResourceType("icon")\
-            .setPath(appleAppDto.downloadImg("./tmp/apple"))
+            .setPath(AppDto.downloadImg(downloadLink=appleAppDto.appImage, toDirectory="./tmp/apple", fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\
@@ -127,23 +147,40 @@ class AppleScrapService(Service) :
 
 
     def consumerProcess(self, q: Queue):
+        envManager = EnvManager.instance()
+        logManager = LogManager.instance()
+        logManager.init(envManager)
         responseResults:List[AppWithDeveloperWithResourceDto] = []
         while ( True ):
-            value = q.get()
-            if( value == "None"):
+            resultData = q.get()
+            if( resultData == "None"):
                 break
-            responseResults.extend(value)
-        self.updateResponseToRepository(responseResults)
+            elif type(resultData) == list :
+                for value in resultData:
+                    if type(value) == ErrorDto:
+                        logManager.error(value.toLog())
+                    else :        
+                        responseResults.append(value)
+            else : 
+                print(resultData)
+                
+        if len(responseResults) > 0 :
+            self.updateResponseToRepository(responseResults)
+            
     
     def updateResponseToRepository(self, dtos : List[AppWithDeveloperWithResourceDto]):
         timeChecker = TimeChecker()
+        envManager = EnvManager.instance()
+        logManager = LogManager.instance()
+        logManager.init(envManager)
+        print("{0:,} 건에 대한 등록을 진행합니다.".format(len(dtos))) 
         
         #1. developer 등록 및 번호조회
         appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
         timeChecker.start(code="Repository-Developer")
         for dto in dtos :
             appMarketDeveloperEntities.append(dto.getAppMarketDeveloperEntity)
-            
+     
         self.__repository.saveBulkDeveloper(appMarketDeveloperEntities)
         timeChecker.stop(code="Repository-Developer")
         findAllAppMarketDeveloperEntities = self.__repository.findAllDeveloperByDeveloperMarketId(appMarketDeveloperEntities)  
@@ -188,55 +225,3 @@ class AppleScrapService(Service) :
         timeChecker.display(code="Repository-Developer")
         timeChecker.display(code="Repository-App")
         timeChecker.display(code="Repository-Resource")
-        
-    def updateResponseToRepository_v1(self, dtos : List[AppWithDeveloperWithResourceDto]):
-        timeChecker = TimeChecker()
-        timeChecker.start(code="Repository-Work")
-        ids:List[str] = []
-        bulkResource:List[AppResourceEntity] = []
-        
-        for dto in dtos :
-            currentId = dto.getAppEntity.getId
-            condition : Callable[[str], bool]  = lambda id : id == currentId 
-            filtered = next(filter( condition, ids ), None)
-            if filtered != None:
-                # print("{} 중복로 인한 패스!".format(currentId))
-                continue
-            
-            ids.append(currentId)
-            #1. developer 등록 및 번호조회
-            result = self.__repository.findDeveloperByDeveloperMarketId(dto.getAppMarketDeveloperEntity)
-            
-            if( result == None ):
-                try :
-                    developNum = self.__repository.saveDeveloper(dto.getAppMarketDeveloperEntity)
-                except Exception as e : 
-                    print(e)
-                    exit()
-            else :
-                developNum = result.getNum
-                
-            #2. app 등록 및 번호조회
-            appEntity = dto.getAppEntity
-            appEntity.setDeveloperNum(developNum)
-            appNum = self.__repository.addApp(appEntity)
-            
-            # findAppEntity:AppEntity = self.__repository.findAppById(appEntity.getMarketNum, appEntity.getId)
-            # if findAppEntity != None :
-            #     appNum = findAppEntity.getNum
-            # else :
-            #     appEntity.setDeveloperNum(developNum)
-            #     appNum = self.__repository.addApp(appEntity)
-                
-            #3. resource 등록 ( Bulk Insert 가능. )
-            appResourceEntity = dto.getAppResourceEntity
-            appResourceEntity.setAppNum(appNum)
-            bulkResource.append(appResourceEntity)
-            
-            # self.__repository.saveResource(appResourceEntity)
-            # Todo : 이미지는 중복등록을 방지하기 위한 처리가 필요함. 
-        # print("Bulk Insert Total : {}".format( len(bulkResource)))
-        self.__repository.saveResourceUseBulk(bulkResource)    
-        timeChecker.stop(code="Repository-Work")
-        timeChecker.display(code="Repository-Work")
-        

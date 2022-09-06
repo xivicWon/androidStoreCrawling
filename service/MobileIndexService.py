@@ -5,7 +5,7 @@ from dto.mobileIndex.MIRequestDto import MIRequestDto
 from entity.AppEntity import AppEntity
 from repository.AppStoreRepository import AppStoreRepository
 from service.Service import Service
-from module.Curl import Curl
+from module.Curl import Curl, CurlMethod
 from module.LogModule import LogModule
 
 class MobileIndexService (Service): 
@@ -56,7 +56,7 @@ class MobileIndexService (Service):
         url = self.__DOMAIN + self.__global_rank_v2
         
         data = Curl.request (
-            method = Curl.METHOD_POST,
+            method = CurlMethod.POST,
             headers=headers,
             data=json.dumps(dto.toDict()),
             url=url

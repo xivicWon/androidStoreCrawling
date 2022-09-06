@@ -1,6 +1,7 @@
 from enum import Enum
 from dto.Dto import Dto
 class ErrorCode(Enum):
+    EXCEPTION = 1000
     ATTRIBUTE_ERROR = 2001
     TYPE_ERROR = 2002
     TOO_MANY_REQUEST = 4000
@@ -9,6 +10,7 @@ class ErrorCode(Enum):
     REQUEST_CONNECTION_ERROR = 4003
     CHUNKED_ENCODING_ERROR = 4004
     URL_OPRN_ERROR = 4005
+    
 class ErrorDto(Dto) : 
     code : ErrorCode
     message : str

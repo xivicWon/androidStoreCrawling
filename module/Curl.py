@@ -1,46 +1,27 @@
-import json
-from requests import get, post
-import requests
+from enum import Enum
+import requests, json
 
+class CurlMethod (Enum): 
+    POST = "POST"
+    GET = "GET"
+    
 class Curl : 
-    METHOD_POST:str ="post"
-    METHOD_GET:str ="get"
     
     @staticmethod
-    def request(method, url, data, headers, timeout=10)->requests.Response:
-        if method == Curl.METHOD_GET:
+    def request(method:CurlMethod, url:str, data:dict, headers:dict, timeout=10)->requests.Response:
+        if method == CurlMethod.GET:
             return Curl.get(url=url, header=headers, timeout=timeout )
-        elif method ==Curl.METHOD_POST:
-            return Curl.post(url, data=data, headers=headers, timeout=timeout)
+        elif method == CurlMethod.POST:
+            return Curl.post(url=url, data=data, headers=headers, timeout=timeout)
         else :
             return None   
         
     @staticmethod
-    def get(url:str, header, timeout)->requests.Response: 
-        try :
-            return get(url, headers=header, timeout=timeout)
-        except requests.exceptions.ReadTimeout: 
-            print("ReadTimeout - url : {} ".format(url))
-            return None
-        except requests.exceptions.ConnectionError: 
-            print("ConnectionError - url : {} ".format(url))
-            return None
-        except requests.exceptions.ChunkedEncodingError:
-            print("ChunkedEncodingError - url : {} ".format(url))
-            return None
-    
+    def get(url:str, header:dict, timeout:int)->requests.Response: 
+        return requests.get(url, headers=header, timeout=timeout)
+       
     @staticmethod
-    def post( url, data, headers, timeout):
-        try :
-            return post(url, data=json.dumps(data) , headers=headers, timeout=timeout) 
-        except requests.exceptions.ReadTimeout: 
-            print("ReadTimeout - url : {} ".format(url))
-            return None
-        except requests.exceptions.ConnectionError: 
-            print("ConnectionError - url : {} ".format(url))
-            return None
-        except requests.exceptions.ChunkedEncodingError:
-            print("ChunkedEncodingError - url : {} ".format(url))
-            return None
-
+    def post( url:str, data:dict, headers:dict, timeout:int):
+        return requests.post(url, data=json.dumps(data) , headers=headers, timeout=timeout) 
+       
         

@@ -1,5 +1,6 @@
 from urllib import parse, request
 import os
+import uuid
 from dto.Dto import Dto
 
 class AppDto(Dto) : 
@@ -29,8 +30,6 @@ class AppDto(Dto) :
         else :
             self.appRating = 0
         
-        # self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
-        # self.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
         self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
         self.developerName = data["author"]["name"] if "author" in data and "name" in data["author"] else ""
         if "image" in data :
@@ -57,17 +56,18 @@ class AppDto(Dto) :
             
         return self 
     
-    def fileDownloadPoilcy(self, file:str)->bool:
-        return not os.path.isfile(file)
+    # def fileDownloadPoilcy(self, file:str)->bool:
+    #     return not os.path.isfile(file)
         
-    def downloadImg (self , toDir) -> str :
-        if self.appImage : 
-            os.makedirs(toDir, exist_ok=True)
-            downloadFileToPath = toDir + "/" + self.appId + ".png"
-            if self.fileDownloadPoilcy(downloadFileToPath):
-                request.urlretrieve(self.appImage, downloadFileToPath)
-            return downloadFileToPath
-        return ""
+    # def downloadImg (self , toDir) -> str :
+    #     if self.appImage : 
+    #         os.makedirs(toDir, exist_ok=True)
+    #         # downloadFileToPath = toDir + "/" + uuid.uuid4().hex + ".png"
+    #         downloadFileToPath = toDir + "/" + self.appId + ".png"
+    #         if self.fileDownloadPoilcy(downloadFileToPath):
+    #             request.urlretrieve(self.appImage, downloadFileToPath)
+    #         return downloadFileToPath
+    #     return ""
     
     def getDeveloperId(self)->str : 
         return self.developerId
@@ -84,4 +84,15 @@ class AppDto(Dto) :
     def getAppRating( self)->int : 
         return self.appRating
     
+    def getAppImage( self ) -> str : 
+        return self.appImage
     
+    @staticmethod
+    def downloadImg (downloadLink:str, toDirectory:str, fileName:str) -> str :
+        os.makedirs(toDirectory, exist_ok=True)
+        downloadFileToPath = "{}/{}.png".format(toDirectory , fileName )
+        if not os.path.isfile(downloadFileToPath):
+            (fileName , Headers) = request.urlretrieve(downloadLink, downloadFileToPath)
+            return fileName 
+        else :
+            return downloadFileToPath

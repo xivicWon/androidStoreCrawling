@@ -23,7 +23,6 @@ class AppResourceEntity(Entity):
     def getPath(self):
         return self.__path
 
-
     def setAppNum(self, app_num):
         self.__app_num = app_num 
         return self
@@ -32,8 +31,7 @@ class AppResourceEntity(Entity):
         self.__resource_type = resource_type
         return self
     
-    def setPath(self, path):
-        self.__path = path 
+    def setPath(self, __path):
+        self.__path = __path 
         return self
     
-

@@ -19,9 +19,9 @@ from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from module.EnvManager import EnvManager
 from module.LogManager import LogManager
-from module.Curl import Curl
+from module.Curl import Curl, CurlMethod
 from module.TimeChecker import TimeChecker
-from exception import TooManyReqeust
+from exception.TooManyRequest import TooManyRequest
 
 
 class GoogleScrapService(Service) : 
@@ -76,24 +76,20 @@ class GoogleScrapService(Service) :
             if repeatCount < self.__MAX_RETRY_COUNT :
                 self.requestUrl(requestUrl, processStack, errorStack)
             else : 
-                msg = "ReadTimeout request Fail : {}".format(requestUrl) 
-                errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , msg))
+                errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , requestUrl))
         except requests.exceptions.ConnectionError: 
-            msg = "ConnectionError request Fail : {}".format(requestUrl)
-            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , msg))
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , requestUrl))
         except requests.exceptions.ChunkedEncodingError:
-            msg = "ChunkedEncodingError request Fail : {}".format(requestUrl)
-            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , msg))
+            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
         except AttributeError:
-            msg = "ChunkedEncodingError request Fail : {}".format(requestUrl)
-            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , msg))
+            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
         except UrllibError.URLError :
-            msg = "urllib.error.URLError : {}".format(requestUrl)
-            errorStack.append(ErrorDto.build(ErrorCode.URL_OPRN_ERROR , msg))
-                        
+            errorStack.append(ErrorDto.build(ErrorCode.URL_OPRN_ERROR , requestUrl))
+        except TooManyRequest : 
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
 
     def requestUrl(self, requestUrl : str,  processStack:List[Dto], errorStack:List[Dto]) :
-        res:requests.Response = Curl.request("get", requestUrl, None, None)
+        res:requests.Response = Curl.request(CurlMethod.GET, requestUrl, None, None)
         data = RequestDto(requestUrl, res)
         if res.status_code == 404 :
             emptyData:dict = {}
@@ -101,8 +97,7 @@ class GoogleScrapService(Service) :
             emptyData["is_active"] = "N"
             processStack.append(self.mappingInactiveDto(emptyData))
         elif res.status_code == 429:
-            msg = "Too Many Request - Try it Later => {} ]".format(requestUrl)
-            raise TooManyReqeust()
+            raise TooManyRequest(requestUrl)
         else :
             try : 
                 appWithDeveloperEntityList = self.singleDomParser(data.getResponse())
@@ -190,11 +185,11 @@ class GoogleScrapService(Service) :
             .setIsActive("Y")\
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
-            
-        appResourceEntity = AppResourceEntity()\
-            .setAppNum(0)\
-            .setResourceType("icon")\
-            .setPath(appDto.downloadImg("./tmp/google"))    
+        appResourceEntity = None
+        # appResourceEntity = AppResourceEntity()\
+        #     .setAppNum(0)\
+        #     .setResourceType("icon")\
+        #     .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory="./tmp/google", fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\
@@ -290,27 +285,27 @@ class GoogleScrapService(Service) :
         if len(appEntities) == 0 :
             return None
         self.__repository.saveBulkApp(appEntities)
-        findAllAppEntities = self.__repository.findAllApp(appEntities)
+        # findAllAppEntities = self.__repository.findAllApp(appEntities)
                 
         #3. resource 등록 
-        AppResourceEntities:List[AppResourceEntity] = []
-        for dto in dtos :
-            appResourceEntity = dto.getAppResourceEntity
-            if appResourceEntity != None : 
-                appEntity = dto.getAppEntity
-                filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
-                findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
-                if findOneAppEntity == None :
-                    msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
-                    logManager.error(msg)
-                    continue
-                appResourceEntity.setAppNum(findOneAppEntity.getNum)
-                AppResourceEntities.append(appResourceEntity)
+        # AppResourceEntities:List[AppResourceEntity] = []
+        # for dto in dtos :
+        #     appResourceEntity = dto.getAppResourceEntity
+        #     if appResourceEntity != None : 
+        #         appEntity = dto.getAppEntity
+        #         filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
+        #         findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
+        #         if findOneAppEntity == None :
+        #             msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
+        #             logManager.error(msg)
+        #             continue
+        #         appResourceEntity.setAppNum(findOneAppEntity.getNum)
+        #         AppResourceEntities.append(appResourceEntity)
             
         timeChecker.stop(code="Repository-App")
         
         timeChecker.start(code="Repository-Resource")
-        self.__repository.saveResourceUseBulk(AppResourceEntities)    
+        # self.__repository.saveResourceUseBulk(AppResourceEntities)    
         timeChecker.stop(code="Repository-Resource")
         
         timeChecker.display(code="Repository-Developer")
