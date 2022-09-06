@@ -89,7 +89,8 @@ class GoogleScrapService(Service) :
             errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
 
     def requestUrl(self, requestUrl : str,  processStack:List[Dto], errorStack:List[Dto]) :
-        res:requests.Response = Curl.request(CurlMethod.GET, requestUrl, None, None)
+        header = {"Accept-Language" : "ko-KR"}
+        res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=header, data=None)
         data = RequestDto(requestUrl, res)
         if res.status_code == 404 :
             emptyData:dict = {}

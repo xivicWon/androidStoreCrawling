@@ -65,7 +65,8 @@ class AppleScrapService(Service) :
             
     def requestUrl(self, requestUrl : str,  processStack:List[Dto] , errorStack:List[ErrorDto]):
         try :
-            res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=None, data=None ,timeout=10)
+            header = {"Accept-Language" : "ko-KR"}
+            res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=header, data=None ,timeout=10)
             data = RequestDto(requestUrl, res)
             
             if res.status_code != 200:

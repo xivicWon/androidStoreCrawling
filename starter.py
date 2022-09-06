@@ -14,7 +14,7 @@ if __name__ == "__main__":
     scrapingAppleStore ="scrapingAppleStore.py"
     mobileIndexRank ="mobileIndexRank.py"
     scrapingGoogleStore ="scrapingGoogleStore.py" 
-    # processingFiles = [mobileIndexRank,scrapingAppleStore, scrapingGoogleStore]
+    processingFiles = [mobileIndexRank,scrapingAppleStore, scrapingGoogleStore]
     processingFiles = [scrapingGoogleStore]
     # processingFiles = [scrapingAppleStore]
     # processingFiles = [mobileIndexRank]
