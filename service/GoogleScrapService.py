@@ -1,3 +1,4 @@
+import os
 import sys, rootpath
 sys.path.append(rootpath.detect())
 
@@ -186,11 +187,15 @@ class GoogleScrapService(Service) :
             .setIsActive("Y")\
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
-        appResourceEntity = None
-        # appResourceEntity = AppResourceEntity()\
-        #     .setAppNum(0)\
-        #     .setResourceType("icon")\
-        #     .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory="./tmp/google", fileName=appEntity.getId))
+            
+        directory = "./resource/google"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
+        appResourceEntity = AppResourceEntity()\
+            .setAppNum(0)\
+            .setResourceType("icon")\
+            .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory="./resource/google", fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\

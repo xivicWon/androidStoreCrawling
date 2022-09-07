@@ -1,0 +1,28 @@
+# docker build -f [Source Directory Path with FileName] -t [imageName] .
+# ex) docker build -f D:\sample\thread\DockerFile -t [imageName] .
+
+FROM python:3.9-slim-buster
+LABEL Jaime Won="xivic@kakao.com"
+
+ENV ROOTPATH=/
+WORKDIR $ROOTPATH
+
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+COPY annotation annotation
+COPY dto dto
+COPY entity entity
+COPY exception exception
+COPY module module
+COPY repository repository
+COPY service service
+COPY .env .
+COPY scrapingAppleStore.py .
+COPY scrapingGoogleStore.py .
+COPY mobileIndexRank.py .
+COPY starter.py .
+
+CMD ["python" , "starter.py" ]
+

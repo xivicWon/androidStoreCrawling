@@ -1,3 +1,4 @@
+import os
 import sys, rootpath
 import time
 
@@ -136,10 +137,14 @@ class AppleScrapService(Service) :
             .setRating(appleAppDto.getAppRating())\
             .setLastUpdateCurrent()
             
+        directory = "./resource/apple"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\
             .setResourceType("icon")\
-            .setPath(AppDto.downloadImg(downloadLink=appleAppDto.appImage, toDirectory="./tmp/apple", fileName=appEntity.getId))
+            .setPath(AppDto.downloadImg(downloadLink=appleAppDto.appImage, toDirectory=directory, fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\
