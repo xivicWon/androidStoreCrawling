@@ -7,9 +7,10 @@ LABEL Jaime Won="xivic@kakao.com"
 ENV ROOTPATH=/
 WORKDIR $ROOTPATH
 
+RUN pip3 install --upgrade pip --ignore-instll
+
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 COPY annotation annotation
 COPY dto dto
@@ -25,4 +26,3 @@ COPY mobileIndexRank.py .
 COPY starter.py .
 
 CMD ["python" , "starter.py" ]
-

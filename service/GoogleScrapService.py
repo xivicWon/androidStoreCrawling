@@ -31,11 +31,13 @@ class GoogleScrapService(Service) :
     __repository:Repository
     __UNDEFINED_APP_NAME: str = "undefined-app"
     __PACKAGE_URL:str = "https://play.google.com/store/apps/details?id="
-    
+    __RESOURCE_DIR:str = "./resource/google"
+        
     def __init__(self,repository:Repository) -> None:
         super().__init__()
-        print("-----GoogleScrapService.__init__")
         self.__repository = repository
+        if not os.path.exists(self.__RESOURCE_DIR):
+            os.makedirs(self.__RESOURCE_DIR)
         pass
             
     def requestWorkListFromDB( self, marketNum:int, offset:int , limit:int ) :
@@ -119,7 +121,7 @@ class GoogleScrapService(Service) :
     @staticmethod
     def filterDeveloperId( obj) :
         href = Tag_A.of(obj).getHref
-        return href.startswith("/store/apps/dev") or href.startswith("/store/apps/dev")
+        return href.startswith("/store/apps/dev") or href.startswith("/store/apps/developer")
     
     def singleDomParser(self, response:requests.Response )->AppWithDeveloperWithResourceDto:
         appWithDeveloperWithResourceDto:AppWithDeveloperWithResourceDto
@@ -138,10 +140,11 @@ class GoogleScrapService(Service) :
             aTags = soup.find_all("a")
             filteredATag = next(filter( GoogleScrapService.filterDeveloperId , aTags) , None) 
             developerIDUrl = Tag_A().of(filteredATag).getHref
+            print(developerIDUrl)
             if type(developerIDUrl) == str : 
                 data["author"]["id"] = developerIDUrl.split("?id=")[1]
             else :
-                data["author"]["id"] = 0
+                data["author"]["id"] = ""
         except TypeError as e : 
             msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
             raise TypeError(msg)
@@ -188,14 +191,10 @@ class GoogleScrapService(Service) :
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
             
-        directory = "./resource/google"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\
             .setResourceType("icon")\
-            .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory="./resource/google", fileName=appEntity.getId))
+            .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory=self.__RESOURCE_DIR, fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\
@@ -291,27 +290,27 @@ class GoogleScrapService(Service) :
         if len(appEntities) == 0 :
             return None
         self.__repository.saveBulkApp(appEntities)
-        # findAllAppEntities = self.__repository.findAllApp(appEntities)
+        findAllAppEntities = self.__repository.findAllApp(appEntities)
                 
         #3. resource 등록 
-        # AppResourceEntities:List[AppResourceEntity] = []
-        # for dto in dtos :
-        #     appResourceEntity = dto.getAppResourceEntity
-        #     if appResourceEntity != None : 
-        #         appEntity = dto.getAppEntity
-        #         filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
-        #         findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
-        #         if findOneAppEntity == None :
-        #             msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
-        #             logManager.error(msg)
-        #             continue
-        #         appResourceEntity.setAppNum(findOneAppEntity.getNum)
-        #         AppResourceEntities.append(appResourceEntity)
+        AppResourceEntities:List[AppResourceEntity] = []
+        for dto in dtos :
+            appResourceEntity = dto.getAppResourceEntity
+            if appResourceEntity != None : 
+                appEntity = dto.getAppEntity
+                filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
+                findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
+                if findOneAppEntity == None :
+                    msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
+                    logManager.error(msg)
+                    continue
+                appResourceEntity.setAppNum(findOneAppEntity.getNum)
+                AppResourceEntities.append(appResourceEntity)
             
         timeChecker.stop(code="Repository-App")
         
         timeChecker.start(code="Repository-Resource")
-        # self.__repository.saveResourceUseBulk(AppResourceEntities)    
+        self.__repository.saveResourceUseBulk(AppResourceEntities)    
         timeChecker.stop(code="Repository-Resource")
         
         timeChecker.display(code="Repository-Developer")

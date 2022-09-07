@@ -32,7 +32,7 @@ def main() :
     logManager.info("마켓정보 Google / 프로세스 {0:,} / 최대 쓰레드 {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
     logManager.info("전체 정보 조외 / Offset {0:,} / Limit {0:,}".format( offset, limit ))
     multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM , offset=offset, limit=limit))
-    # samples = ["com.dxx.firenow"]
+    # samples = ["com.kakao.talk"]
     # multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()

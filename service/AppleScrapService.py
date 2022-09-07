@@ -29,8 +29,13 @@ class AppleScrapService(Service) :
     __MARKET_NUM:int = 2 
     __MAX_RETRY_COUNT:int = 3
     __repository:Repository
+    __RESOURCE_DIR:str = "./resource/apple"
+    
     def __init__(self,repository:Repository) -> None:
+        super().__init__()
         self.__repository = repository
+        if not os.path.exists(self.__RESOURCE_DIR):
+            os.makedirs(self.__RESOURCE_DIR)
         pass
         
     def requestWorkListFromDB( self, marketNum:int  ) :
@@ -137,14 +142,10 @@ class AppleScrapService(Service) :
             .setRating(appleAppDto.getAppRating())\
             .setLastUpdateCurrent()
             
-        directory = "./resource/apple"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\
             .setResourceType("icon")\
-            .setPath(AppDto.downloadImg(downloadLink=appleAppDto.appImage, toDirectory=directory, fileName=appEntity.getId))
+            .setPath(AppDto.downloadImg(downloadLink=appleAppDto.appImage, toDirectory=self.__RESOURCE_DIR, fileName=appEntity.getId))
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\
