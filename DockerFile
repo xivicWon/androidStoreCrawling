@@ -7,7 +7,7 @@ LABEL Jaime Won="xivic@kakao.com"
 ENV ROOTPATH=/
 WORKDIR $ROOTPATH
 
-RUN pip3 install --upgrade pip --ignore-instll
+RUN pip3 install --upgrade pip --ignore-install
 
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
