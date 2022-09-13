@@ -20,9 +20,9 @@ COPY module module
 COPY repository repository
 COPY service service
 COPY .env .
-COPY scrapingAppleStore.py .
-COPY scrapingGoogleStore.py .
-COPY mobileIndexRank.py .
+COPY apple_category_scrap.py .
+COPY google_saved_package_scrap.py .
+COPY mobileIndex_rank_api.py .
 COPY starter.py .
 
-CMD ["python" , "starter.py" ]
+CMD ["python" , "starter.py" , $ACTION ]
