@@ -1,0 +1,12 @@
+# docker-compose -f /home/appstore/appstore_scraping/sample/docker-compose.yml up
+
+version: '3.9'
+services:
+  mobileIndex_rank_api:
+    container_name: mobileIndex_rank_api
+    image: appstore_scraping:latest
+    environment:
+      - ACTION=mobileIndex_rank_api
+    volumes:
+      - /data/appstore/images:/resource
+      - /home/appstore/appstore_scraping/logs:/logs

@@ -1,0 +1,12 @@
+# docker-compose -f /home/appstore/appstore_scraping/sample/docker-compose.yml up
+
+version: '3.9'
+services:
+  google_saved_package_scrap:
+    container_name: google_saved_package_scrap
+    image: appstore_scraping:latest
+    environment:
+      - ACTION=google_saved_package_scrap
+    volumes:
+      - /data/appstore/images:/resource
+      - /home/appstore/appstore_scraping/logs:/logs
