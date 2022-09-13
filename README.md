@@ -1,11 +1,17 @@
 # 앱 스토어 스크래핑
+## v1.0.2
+    - add bin/ 
+        - add docker-compose_apple_category_scrap.yml
+        - add docker-compose_google_saved_package_scrap.yml
+        - add docker-compose_mobileIndex_rank_api.yml
+        - add docker-compose_all.yml
+    - delete sample/
+
 ## v1.0.1
     - 스크래핑 개별 동작으로 변경.
     - sample 폴더 추가. 
         - docker-compose.yml
         - .env-sample => 프로젝트 root 디렉토리에 이동 후 .env 로 변경하여 사용.
-    - 
-
 ## v1.0.0
     - mobileIndexRank.py, scrapingGoogleStore.py, scrapingAppleStore.py 에 대한 수집기능 적용.
     - 멀티 프로세스, 멀티 스레드를 활용한 스크랩핑 작업.

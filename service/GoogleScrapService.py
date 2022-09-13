@@ -140,7 +140,6 @@ class GoogleScrapService(Service) :
             aTags = soup.find_all("a")
             filteredATag = next(filter( GoogleScrapService.filterDeveloperId , aTags) , None) 
             developerIDUrl = Tag_A().of(filteredATag).getHref
-            print(developerIDUrl)
             if type(developerIDUrl) == str : 
                 data["author"]["id"] = developerIDUrl.split("?id=")[1]
             else :
@@ -217,7 +216,7 @@ class GoogleScrapService(Service) :
                     else :        
                         responseResults.append(value)
             else : 
-                print(resultData)
+                logManager.error("consumerProcess > check undefined data : {}".format(resultData))
         if len(responseResults) > 0 :
             self.updateResponseToRepository(responseResults)
         
