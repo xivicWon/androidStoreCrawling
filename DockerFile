@@ -1,5 +1,6 @@
 # docker build -f [Source Directory Path with FileName] -t [imageName] .
 # ex) docker build -f D:\sample\thread\DockerFile -t [imageName] .
+# ex) docker build -f /home/appstore/appstore_scraping/DockerFile -t appstore_scraping .
 
 FROM python:3.9-slim-buster
 LABEL Jaime Won="xivic@kakao.com"
@@ -25,4 +26,4 @@ COPY google_saved_package_scrap.py .
 COPY mobileIndex_rank_api.py .
 COPY starter.py .
 
-CMD ["python" , "starter.py" , $ACTION ]
+CMD ["python" , "starter.py" , "$ACTION" ]
