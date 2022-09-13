@@ -26,4 +26,5 @@ COPY google_saved_package_scrap.py .
 COPY mobileIndex_rank_api.py .
 COPY starter.py .
 
-CMD ["python" , "starter.py" , "$ACTION" ]
+# CMD ["python" , "starter.py" , "${ACTION}" ]
+CMD python starter.py $ACTION
