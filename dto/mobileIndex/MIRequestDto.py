@@ -7,7 +7,7 @@ class MIRequestDto(Dto) :
     __appType : str
     __date : str
     __startRank : int 
-    __endRank : int 
+    __endRank : int
    
     def __init__(self) -> None: 
         pass
@@ -58,7 +58,7 @@ class MIRequestDto(Dto) :
     def toDict(self):
         return {
             "market" : self.__market,
-            "conutry" : self.__country,
+            "country" : self.__country,
             "rankType" : self.__rankType,
             "appType" : self.__appType,
             "date" : self.__date,

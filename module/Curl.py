@@ -1,9 +1,8 @@
 from enum import Enum
-import requests, json
-
+import requests
 class CurlMethod (Enum): 
-    POST = "POST"
-    GET = "GET"
+    POST:str = "POST"
+    GET:str = "GET"
     
 class Curl : 
     
@@ -22,6 +21,6 @@ class Curl :
        
     @staticmethod
     def post( url:str, data:dict, headers:dict, timeout:int):
-        return requests.post(url, data=json.dumps(data) , headers=headers, timeout=timeout) 
+        return requests.post(url, data=data , headers=headers, timeout=timeout) 
        
         

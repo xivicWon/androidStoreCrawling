@@ -1,4 +1,5 @@
 import json
+import requests
 from typing import Callable, List
 from dto.mobileIndex.MIMarketInfoDto import MIMarketInfoDto
 from dto.mobileIndex.MIRequestDto import MIRequestDto
@@ -9,26 +10,26 @@ from module.Curl import Curl, CurlMethod
 from module.LogModule import LogModule
 
 class MobileIndexService (Service): 
-    
-    __REFERER:str = "https://www.mobileindex.com"
     __DOMAIN:str =  "https://www.mobileindex.com"
+    __REFERER:str = "https://www.mobileindex.com/mi-chart/daily-rank"
+    __CONTENT_TYPE : str = "application/x-www-form-urlencoded"
     __global_rank_v2:str =  "/api/chart/global_rank_v2"
     __market_info:str =  "/api/app/market_info"
     __appStoreRepository :AppStoreRepository 
-    __logModule: LogModule
+    __log: LogModule
     def __init__(self, appStoreRepository, logModule:LogModule ):
         self.__appStoreRepository = appStoreRepository
-        self.__logModule = logModule 
+        self.__log = logModule 
         pass
 
     def __getJsonToMobileIndex(self, data ) -> dict : 
         headers = {
-            'Content-Type': 'application/json; charset=utf-8',
+            'Content-Type': self.__CONTENT_TYPE,
             'referer':  self.__REFERER
         }
         url = self.__DOMAIN + self.__market_info
         response = Curl.request(
-            method="post",
+            method=CurlMethod.POST,
             headers=headers,
             url=url,
             data=data
@@ -45,35 +46,50 @@ class MobileIndexService (Service):
         return MIMarketInfoDto().ofDict(data)
     
     def marketInfoSave(self, package) : 
-        mIMarketInfoDto = self.__getGoogleMarket(package=package)        
+        mIMarketInfoDto = self.__getGoogleMarket(package=package)     
+        
+        print("{} - {} - {}".format(mIMarketInfoDto.getPackageName, mIMarketInfoDto.getAppId , mIMarketInfoDto.getMappingCode))   
+        
         self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toAppleAppEntity())
         self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toGoogleAppEntity())
     
     def getGlobalRank(self, dto:MIRequestDto, appEntities:List[AppEntity]):
         headers = {
-            "referer":  self.__REFERER
+            'Content-Type':  self.__CONTENT_TYPE,
+            'referer': self.__REFERER,
         }
         url = self.__DOMAIN + self.__global_rank_v2
-        
-        data = Curl.request (
+        response = Curl.request (
             method = CurlMethod.POST,
             headers=headers,
-            data=json.dumps(dto.toDict()),
-            url=url
+            url=url,
+            data=dto.toDict()
         )
-        responseData = data.json()
-        if responseData["status"] :
-            ranks = responseData["data"]
-            for app in ranks : 
+        
+        if response.status_code == 200 :
+            responseData = response.json() 
+        elif response.status_code == 403:
+            self.__log.error("MobileIndexService - [Forbidden Error] - 403 - {}".format(json.dumps(dto.toDict())))
+            return 
+        else : 
+            self.__log.error("MobileIndexService - [ Error] - {} - {}".format(response.status_code, json.dumps(dto.toDict())))
+            return 
+        
+        ranks = responseData["data"]
+        for app in ranks : 
+            try :
                 if  app["market_name"] == "one" \
                     or app["package_name"] == None \
                     or app["package_name"] == app["market_appid"]:
                     continue
-                mIMarketInfoDto = MIMarketInfoDto()
-                mIMarketInfoDto.setPackageName(app["package_name"])
-                mIMarketInfoDto.setAppId("id" + app["market_appid"])
-                appEntities.append(mIMarketInfoDto.toAppleAppEntity())
-                appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+            except TypeError as e :
+                print(e)
+                continue
+            mIMarketInfoDto = MIMarketInfoDto()
+            mIMarketInfoDto.setPackageName(app["package_name"])
+            mIMarketInfoDto.setAppId("id" + app["market_appid"])
+            appEntities.append(mIMarketInfoDto.toAppleAppEntity())
+            appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
     
     def saveGlobalRank (self, appEntities:List[AppEntity]):
         AppIds:List[str] = []
@@ -86,5 +102,5 @@ class MobileIndexService (Service):
                 continue
             saveAppEntities.append(appEntity)
             AppIds.append(currentId)
-        self.__logModule.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(AppIds)))
+        self.__log.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(AppIds)))
         self.__appStoreRepository.saveAppMappingUseBulk(saveAppEntities)

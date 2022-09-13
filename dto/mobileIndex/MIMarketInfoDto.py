@@ -18,9 +18,6 @@ class MIMarketInfoDto(Dto) :
     def getAppId (self):
         return self.__apple_id
 
-    @property
-    def getMappingCode (self):
-        return self.__mapping_code
     
     def setPackageName (self, package_name):
         self.__package_name = package_name
@@ -35,21 +32,20 @@ class MIMarketInfoDto(Dto) :
         
     def __createMappingCode(self):
         self.__mapping_code = uuid.uuid4()
+        return self.__mapping_code
     
-    def __getMappingCode(self) :
+    def getMappingCode(self) :
         try : 
             if self.getMappingCode == None: 
-                self.__createMappingCode()
-            return self.getMappingCode    
+                return self.__createMappingCode()
         except AttributeError :
-            self.__createMappingCode()
-            return self.getMappingCode  
+            return self.__createMappingCode()
         
     def toGoogleAppEntity(self) :
         appEntity = AppEntity()
         appEntity.setId(self.getPackageName)
         appEntity.setMarketNum(1)
-        appEntity.setMappingCode(self.__getMappingCode())
+        appEntity.setMappingCode(self.getMappingCode())
         appEntity.setLastUpdateCurrent()
         appEntity.setIsActive('Y')
         return appEntity
@@ -59,7 +55,7 @@ class MIMarketInfoDto(Dto) :
         appEntity = AppEntity()
         appEntity.setId(self.getAppId)
         appEntity.setMarketNum(2)
-        appEntity.setMappingCode(self.__getMappingCode())
+        appEntity.setMappingCode(self.getMappingCode())
         appEntity.setLastUpdateCurrent()
         appEntity.setIsActive('Y')
         return appEntity

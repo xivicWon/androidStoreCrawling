@@ -12,6 +12,7 @@ from module.LogManager import LogManager
 def main() :
     envManager = EnvManager.instance()
     logManager = LogManager.instance()
+    logManager.init(envManager)
     openDB: OpenDB = OpenDB(
         host=envManager.DB_HOST, 
         username=envManager.DB_USER , 

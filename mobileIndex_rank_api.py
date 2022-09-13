@@ -15,6 +15,7 @@ if __name__  == '__main__' :
     
     envManager = EnvManager.instance()
     logManager = LogManager.instance()
+    logManager.init(envManager)
     openDB: OpenDB = OpenDB(host=envManager.DB_HOST, 
                             username=envManager.DB_USER , 
                             password=envManager.DB_PASSWORD , 
@@ -25,24 +26,27 @@ if __name__  == '__main__' :
     mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository, logModule=logManager)
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
-    mIRequestDto = MIRequestDto()
-    mIRequestDto.setMarket("all")
-    mIRequestDto.setDate(datetime.datetime.now().strftime("%Y%m%d"))
-    mIRequestDto.setStartRank(1)
-    mIRequestDto.setEndRank(100)
     
-    countries = ["kr", "asian" , "other"]
-    rankTypes = ["gross", "free" , "paid"]
-    appTypes = ["app", "game" , "other"]
+    countries = ["kr", "asia", "other"]
+    rankTypes = ["gross", "free", "paid"]
+    appTypes = ["app", "game" ]
     
     # countries = ["kr"]
     # rankTypes = ["gross"]
-    # appTypes = ["app"]
+    # appTypes = ["game"]
     appEntities:List[AppEntity] = []
     threadList:List[Thread] = []
     for country in countries :
         for rankType in rankTypes :
             for appType in appTypes : 
+                mIRequestDto = MIRequestDto()
+                if country == "kr" :
+                    mIRequestDto.setMarket("all")
+                else : 
+                    mIRequestDto.setMarket("google")
+                mIRequestDto.setDate(datetime.datetime.now().strftime("%Y%m%d"))
+                mIRequestDto.setStartRank(1)
+                mIRequestDto.setEndRank(100)
                 mIRequestDto.setCounty(country)
                 mIRequestDto.setRankType(rankType)
                 mIRequestDto.setAppType(appType)
