@@ -28,7 +28,7 @@ def main() :
         supplier=appScrapService.threadProductor
     )
     
-    logManager.info("마켓정보 Apple / 프로세스 {0:,} / 최대 쓰레드 {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
+    logManager.info("Market : Apple / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
     multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()

@@ -71,7 +71,6 @@ class AppleScrapService(Service) :
             header = {"Accept-Language" : "ko-KR"}
             res:requests.Response = Curl.request(method=CurlMethod.GET, url=url, headers=header, data=None ,timeout=10)
             data = RequestDto(url, res)
-            print("StatusCode : {}".format(res.status_code))
             if res.status_code == 200:
                 if self.isCategoryURL(url):
                     appWithDeveloperEntityList:List[AppWithDeveloperWithResourceDto] = DomParser.parseAppleCategory(data.getResponse())
@@ -163,7 +162,6 @@ class AppleScrapService(Service) :
                     continue
                 appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
             appEntities.append(appEntity)
-            print(appEntity.toString())
             
         self.__repository.saveBulkApp(appEntities)
         timeChecker.stop(code="Repository-App")
@@ -184,7 +182,6 @@ class AppleScrapService(Service) :
                     continue
                 appResourceEntity.setAppNum(findOneAppEntity.getNum)
                 AppResourceEntities.append(appResourceEntity)
-            
         
         self.__repository.saveResourceUseBulk(AppResourceEntities)    
         timeChecker.stop(code="Repository-Resource")

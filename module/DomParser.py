@@ -7,6 +7,7 @@ from bs4.element import Tag
 
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
+from dto.htmlDom.Tag_A import Tag_A
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
@@ -82,7 +83,46 @@ class DomParser :
         except TypeError as e : 
             msg = "domParser] data : {} ]".format( e)
             raise TypeError(msg)
-
+        
+                
+    @staticmethod
+    def filterDeveloperId( obj) :
+        href = Tag_A.of(obj).getHref
+        return href.startswith("/store/apps/dev") or href.startswith("/store/apps/developer")
+    
+    
+    @staticmethod
+    def parseGoogleApp( response:requests.Response )->List[AppWithDeveloperWithResourceDto]:
+        marketNum = DomParser.__GOOGLE_MARKET_NUM  
+        resourceDirectory = DomParser.__GOOGLE_RESOURCE_DIR
+        DomParser.makeResourceDir(resourceDirectory)
+        try : 
+            soup = bs(response.text, "html.parser")
+            data = json.loads(soup.find('script', type='application/ld+json').text)
+        except AttributeError as e : 
+            msg = "AttributeError] Response [status code : {} , url : {}, data : {} ]".format(response.status_code , response.url, data )
+            raise AttributeError(msg)
+        except TypeError as e : 
+            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
+            raise TypeError(msg)
+            
+        data["id"] = response.url.split("id=").pop()
+        try : 
+            aTags = soup.find_all("a")
+            filteredATag = next(filter( DomParser.filterDeveloperId , aTags) , None) 
+            developerIDUrl = Tag_A().of(filteredATag).getHref
+            if type(developerIDUrl) == str : 
+                data["author"]["id"] = developerIDUrl.split("?id=").pop()
+            else :
+                data["author"]["id"] = ""
+        except TypeError as e : 
+            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
+            raise TypeError(msg)
+        
+        return DomParser.getAppWithDeveloperWithResourceDto(marketNum=marketNum , appDto = AppDto.ofGoogle(data) )
+        
+        
+        
     @staticmethod
     def getAppWithDeveloperWithResourceDto(marketNum:int, appDto:AppDto, resourceDirectory:str ):
         
@@ -115,6 +155,7 @@ class DomParser :
             .setAppEntity(appEntity)\
             .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
             .setAppResourceEntity(appResourceEntity)
+          
             
     @staticmethod
     def mappingInactiveDto( marketNum:int, appId:str ):

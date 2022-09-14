@@ -24,24 +24,26 @@ class AppDto(Dto) :
         appDto.appIsActive = "N"
         return appDto 
     
-    def ofGoogle(self, data:dict):
-        self.appName = parse.unquote(data["name"])
-        self.appId = data["id"]
+    @staticmethod
+    def ofGoogle(data:dict):
+        appDto = AppDto()
+        appDto.appName = parse.unquote(data["name"])
+        appDto.appId = data["id"]
         if "aggregateRating" in data and "ratingValue" in data["aggregateRating"]:
-            self.appRating = int(float(data["aggregateRating"]["ratingValue"]) * 10)
+            appDto.appRating = int(float(data["aggregateRating"]["ratingValue"]) * 10)
         else :
-            self.appRating = 0
+            appDto.appRating = 0
         
-        self.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
-        self.developerName = data["author"]["name"] if "author" in data and "name" in data["author"] else ""
+        appDto.developerId = parse.unquote(data["author"]["id"]) if "author" in data and "id" in data["author"] else ""
+        appDto.developerName = data["author"]["name"] if "author" in data and "name" in data["author"] else ""
         if "image" in data :
             img:str = data["image"]
-            self.appImage = img + "=s" + str(self.DEFAULT_IMAGE_WIDTH) + "-rw"
+            appDto.appImage = img + "=s" + str(appDto.DEFAULT_IMAGE_WIDTH) + "-rw"
         else :
-            self.appImage = ""
+            appDto.appImage = ""
             
-        self.appIsActive =  data["is_active"] if "is_active" in data else "Y"
-        return self 
+        appDto.appIsActive =  data["is_active"] if "is_active" in data else "Y"
+        return appDto 
     
     @staticmethod
     def ofAppleCategory(data:dict):

@@ -58,19 +58,10 @@ class GoogleScrapService(Service) :
     
     
     def requestWorkListFromDBTest( self, marketNum:int, ids:List[str] ) :
-        # appList = [self.__repository.findAppById(marketNum, id)]
         crwlingJob:List[str] = []
         for id in ids:
             url = self.__PACKAGE_URL + id
             crwlingJob.append(url)
-        # if type(appList) == list:
-        #     for appEntity in appList :
-        #         url = self.__PACKAGE_URL + appEntity.getId
-        #         crwlingJob.append(url)
-        # else :
-        #     msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
-        #     print(msg)
-        #     exit()
         return crwlingJob
     
     def threadProductor(self, requestUrl : str, processStack:List[Dto], errorStack:List[Dto]):
@@ -105,109 +96,32 @@ class GoogleScrapService(Service) :
             raise TooManyRequest(requestUrl)
         else :
             try : 
-                appWithDeveloperEntityList = self.singleDomParser(data.getResponse())
+                appWithDeveloperEntityList = DomParser.parseGoogleApp(data.getResponse())
                 if type(appWithDeveloperEntityList) == AppWithDeveloperWithResourceDto :
                     processStack.append(appWithDeveloperEntityList)
                 else :
                     msg = "getResponse Fail : {}".format(requestUrl)
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , msg))
             except AttributeError   :
-                msg =  "getResponse Fail : {}".format(requestUrl)
+                msg = "getResponse Fail : {}".format(requestUrl)
                 errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , msg))
             except TypeError  :
                 msg = "getResponse Fail : {}".format(requestUrl)
+                d = ErrorDto.build(ErrorCode.TYPE_ERROR , msg)
+                print (d.code)
                 errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , msg))
                 
-                
-    @staticmethod
-    def filterDeveloperId( obj) :
-        href = Tag_A.of(obj).getHref
-        return href.startswith("/store/apps/dev") or href.startswith("/store/apps/developer")
-    
-    def singleDomParser(self, response:requests.Response )->AppWithDeveloperWithResourceDto:
-        appWithDeveloperWithResourceDto:AppWithDeveloperWithResourceDto
-        try : 
-            soup = bs(response.text, "html.parser")
-            data = json.loads(soup.find('script', type='application/ld+json').text)
-        except AttributeError as e : 
-            msg = "AttributeError] Response [status code : {} , url : {}, data : {} ]".format(response.status_code , response.url, data )
-            raise AttributeError(msg)
-        except TypeError as e : 
-            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
-            raise TypeError(msg)
-            
-        data["id"] = response.url.split("id=").pop()
-        try : 
-            aTags = soup.find_all("a")
-            filteredATag = next(filter( GoogleScrapService.filterDeveloperId , aTags) , None) 
-            developerIDUrl = Tag_A().of(filteredATag).getHref
-            if type(developerIDUrl) == str : 
-                data["author"]["id"] = developerIDUrl.split("?id=")[1]
-            else :
-                data["author"]["id"] = ""
-        except TypeError as e : 
-            msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
-            raise TypeError(msg)
-        
-        appWithDeveloperWithResourceDto = (self.mappingDto(data))
-        return appWithDeveloperWithResourceDto
-    
-    def mappingInactiveDto(self, data:dict ):
-        appDto = AppDto.ofInActive(data)
-        
-        appMarketDeveloperEntity = None
-        
-        appEntity = AppEntity()\
-            .setAppName(self.__UNDEFINED_APP_NAME)\
-            .setId(appDto.getAppId())\
-            .setDeveloperNum(0)\
-            .setMarketNum(self.__MARKET_NUM)\
-            .setIsActive("N")\
-            .setRating(0)\
-            .setLastUpdateCurrent()
-            
-        appResourceEntity = None
-        
-        return AppWithDeveloperWithResourceDto()\
-            .setAppEntity(appEntity)\
-            .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
-            .setAppResourceEntity(appResourceEntity)
-            
-    def mappingDto (self, data:dict ):
-        appDto = AppDto().ofGoogle(data)
-        
-        appMarketDeveloperEntity = AppMarketDeveloperEntity()\
-            .setDeveloperMarketId(appDto.getDeveloperId())\
-            .setDeveloperName(appDto.getDeveloperName())\
-            .setMarketNum(self.__MARKET_NUM)\
-            .setCompanyNum(0)
-            
-        appEntity = AppEntity()\
-            .setAppName(appDto.getAppName())\
-            .setId(appDto.getAppId())\
-            .setDeveloperNum(0)\
-            .setMarketNum(self.__MARKET_NUM)\
-            .setIsActive("Y")\
-            .setRating(appDto.getAppRating())\
-            .setLastUpdateCurrent()
-            
-        appResourceEntity = AppResourceEntity()\
-            .setAppNum(0)\
-            .setResourceType("icon")\
-            .setPath(AppDto.downloadImg(downloadLink=appDto.appImage, toDirectory=self.__RESOURCE_DIR, fileName=appEntity.getId))
-            
-        return AppWithDeveloperWithResourceDto()\
-            .setAppEntity(appEntity)\
-            .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
-            .setAppResourceEntity(appResourceEntity)
-
     def consumerProcess(self, q: Queue):
         envManager = EnvManager.instance()
         logManager = LogManager.instance()
         logManager.init(envManager)
         responseResults:List[AppWithDeveloperWithResourceDto] = []
         while ( True ):
-            resultData = q.get()
+            try :
+                resultData = q.get()
+            except ValueError as e :
+                print("ERROR : {} {}".format(e, resultData))
+                continue
             if( resultData == "None"):
                 break
             elif type(resultData) == list :
@@ -218,41 +132,9 @@ class GoogleScrapService(Service) :
                         responseResults.append(value)
             else : 
                 logManager.error("consumerProcess > check undefined data : {}".format(resultData))
+                
         if len(responseResults) > 0 :
             self.updateResponseToRepository(responseResults)
-        
-    def saveDeveloperInfo(self, dtos : List[AppWithDeveloperWithResourceDto]):
-        appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
-        condition: Callable[[AppWithDeveloperWithResourceDto] , Optional[AppMarketDeveloperEntity]] = lambda dto : dto.getAppMarketDeveloperEntity
-        conditionWithoutNone: Callable[[AppMarketDeveloperEntity], AppMarketDeveloperEntity ] = lambda e : type(e) == AppMarketDeveloperEntity
-        appMarketDeveloperEntities = list(filter( conditionWithoutNone, map(condition ,dtos)))
-       
-        if len(appMarketDeveloperEntities) > 0 :
-            self.__repository.saveBulkDeveloper(appMarketDeveloperEntities)
-        return appMarketDeveloperEntities
-    
-    def saveAppEntities(self, dtos: List[AppWithDeveloperWithResourceDto], findAllAppMarketDeveloperEntities) :
-        envManager = EnvManager.instance()
-        logManager = LogManager.instance()
-        logManager.init(envManager)
-        appEntities:List[AppEntity] = []
-        for dto in dtos :
-            appEntity = dto.getAppEntity
-            if appEntity.getIsActive == 'Y' :
-                appMarketDeveloperEntity = dto.getAppMarketDeveloperEntity
-                filterDeveloperEntity:Callable[[AppMarketDeveloperEntity] , bool] = lambda t : t.getDeveloperMarketId == appMarketDeveloperEntity.getDeveloperMarketId
-                findOneAppMarketDeveloperEntity:AppMarketDeveloperEntity = next(filter( filterDeveloperEntity, findAllAppMarketDeveloperEntities), None)
-                if findOneAppMarketDeveloperEntity == None:
-                    msg = "Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString())
-                    logManager.error(msg)
-                    continue
-                appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
-            appEntities.append(appEntity)
-        
-        if len(appEntities) == 0 :
-            return None
-        self.__repository.saveBulkApp(appEntities)
-        return appEntities
         
         
     def updateResponseToRepository(self, dtos : List[AppWithDeveloperWithResourceDto]):
@@ -317,4 +199,37 @@ class GoogleScrapService(Service) :
         timeChecker.display(code="Repository-Developer")
         timeChecker.display(code="Repository-App")
         timeChecker.display(code="Repository-Resource")
+        
+    def saveDeveloperInfo(self, dtos : List[AppWithDeveloperWithResourceDto]):
+        appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
+        condition: Callable[[AppWithDeveloperWithResourceDto] , Optional[AppMarketDeveloperEntity]] = lambda dto : dto.getAppMarketDeveloperEntity
+        conditionWithoutNone: Callable[[AppMarketDeveloperEntity], AppMarketDeveloperEntity ] = lambda e : type(e) == AppMarketDeveloperEntity
+        appMarketDeveloperEntities = list(filter( conditionWithoutNone, map(condition ,dtos)))
+       
+        if len(appMarketDeveloperEntities) > 0 :
+            self.__repository.saveBulkDeveloper(appMarketDeveloperEntities)
+        return appMarketDeveloperEntities
+    
+    def saveAppEntities(self, dtos: List[AppWithDeveloperWithResourceDto], findAllAppMarketDeveloperEntities) :
+        envManager = EnvManager.instance()
+        logManager = LogManager.instance()
+        logManager.init(envManager)
+        appEntities:List[AppEntity] = []
+        for dto in dtos :
+            appEntity = dto.getAppEntity
+            if appEntity.getIsActive == 'Y' :
+                appMarketDeveloperEntity = dto.getAppMarketDeveloperEntity
+                filterDeveloperEntity:Callable[[AppMarketDeveloperEntity] , bool] = lambda t : t.getDeveloperMarketId == appMarketDeveloperEntity.getDeveloperMarketId
+                findOneAppMarketDeveloperEntity:AppMarketDeveloperEntity = next(filter( filterDeveloperEntity, findAllAppMarketDeveloperEntities), None)
+                if findOneAppMarketDeveloperEntity == None:
+                    msg = "Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString())
+                    logManager.error(msg)
+                    continue
+                appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
+            appEntities.append(appEntity)
+        
+        if len(appEntities) == 0 :
+            return None
+        self.__repository.saveBulkApp(appEntities)
+        return appEntities
         

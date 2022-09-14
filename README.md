@@ -6,11 +6,11 @@
             - [method] ofAppleCategory
             - [method] ofAppleAppDetail
     - add Domparser
-        - AppleScrapService 에 적용.
-        - GoogleScrapService 에 일부 적용
-    - expand ErrorDto 
-        - add ErrorCodeLevel 에러코드 레벨 설정
-        - add ErrorCodeValue 에러코드 값
+        - AppleScrapService 에 적용
+        - GoogleScrapService 에 적용
+    - expand ErrorDto - 원복
+        - add ErrorCodeLevel 에러코드 레벨 설정 - 제거
+        - add ErrorCodeValue 에러코드 값 - 제거
 ## v1.0.2
     - add bin/ 
         - add docker-compose_apple_category_scrap.yml

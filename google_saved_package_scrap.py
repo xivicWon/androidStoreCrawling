@@ -30,11 +30,11 @@ def main() :
     
     offset:int = 0
     limit:int = 10000
-    logManager.info("마켓정보 Google / 프로세스 {0:,} / 최대 쓰레드 {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    logManager.info("전체 정보 조외 / Offset {0:,} / Limit {0:,}".format( offset, limit ))
+    logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
+    logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
     multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM , offset=offset, limit=limit))
-    # samples = ["com.kakao.talk"]
-    # multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
+    samples = ["com.kucoin.wallet"]
+    multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
     
