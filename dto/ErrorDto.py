@@ -1,15 +1,37 @@
 from enum import Enum
 from dto.Dto import Dto
+class ErrorCodeLevel(Enum) :
+    TRACE = 0 
+    DEBUG = 1
+    INFO = 2
+    WARN = 3 
+    ERROR = 4    
+
+class ErrorCodeValue: 
+    __codeNumber: int 
+    __level : ErrorCodeLevel
+    
+    def __init__(self, codeNumber, level:ErrorCodeLevel) -> None:
+        self.__codeNumber = codeNumber
+        self.__level = level
+        pass
+    
+    def getLevel(self, ):
+        return self.__level.name
+    
+    def getNumber(self, ):
+        return self.__codeNumber
+    
 class ErrorCode(Enum):
-    EXCEPTION = 1000
-    ATTRIBUTE_ERROR = 2001
-    TYPE_ERROR = 2002
-    TOO_MANY_REQUEST = 4000
-    RESPONSE_FAIL = 4001
-    REQUEST_READ_TIMEOUT = 4002
-    REQUEST_CONNECTION_ERROR = 4003
-    CHUNKED_ENCODING_ERROR = 4004
-    URL_OPRN_ERROR = 4005
+    EXCEPTION = ErrorCodeValue(1000, ErrorCodeLevel.ERROR)
+    ATTRIBUTE_ERROR = ErrorCodeValue(2001, ErrorCodeLevel.ERROR)
+    TYPE_ERROR = ErrorCodeValue(2002, ErrorCodeLevel.ERROR) 
+    TOO_MANY_REQUEST = ErrorCodeValue(4000, ErrorCodeLevel.WARN)
+    RESPONSE_FAIL = ErrorCodeValue(4001, ErrorCodeLevel.WARN) 
+    REQUEST_READ_TIMEOUT = ErrorCodeValue(4002, ErrorCodeLevel.WARN)
+    REQUEST_CONNECTION_ERROR = ErrorCodeValue(4003, ErrorCodeLevel.WARN) 
+    CHUNKED_ENCODING_ERROR = ErrorCodeValue(4004, ErrorCodeLevel.WARN)  
+    URL_OPEN_ERROR = ErrorCodeValue(4005, ErrorCodeLevel.WARN)   
     
 class ErrorDto(Dto) : 
     code : ErrorCode
@@ -17,10 +39,13 @@ class ErrorDto(Dto) :
 
     @staticmethod
     def build( code:int, message:str):
-        dto = ErrorDto()
-        dto.code = code
-        dto.message = message
-        return dto
+        errorDto = ErrorDto()
+        errorDto.code = code
+        errorDto.message = message
+        return errorDto
 
+    def getLevel(self):    
+        return self.code.value.getLevel()
+        
     def toLog(self,):
         return "{} > {}".format( self.code.name, self.message)

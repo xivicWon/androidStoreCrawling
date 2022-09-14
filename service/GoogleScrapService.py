@@ -1,5 +1,7 @@
 import os
 import sys, rootpath
+
+
 sys.path.append(rootpath.detect())
 
 import requests, json
@@ -22,6 +24,7 @@ from module.EnvManager import EnvManager
 from module.LogManager import LogManager
 from module.Curl import Curl, CurlMethod
 from module.TimeChecker import TimeChecker
+from module.DomParser import DomParser
 from exception.TooManyRequest import TooManyRequest
 
 
@@ -87,7 +90,7 @@ class GoogleScrapService(Service) :
         except AttributeError:
             errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
         except UrllibError.URLError :
-            errorStack.append(ErrorDto.build(ErrorCode.URL_OPRN_ERROR , requestUrl))
+            errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , requestUrl))
         except TooManyRequest : 
             errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
 
@@ -96,10 +99,8 @@ class GoogleScrapService(Service) :
         res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=header, data=None)
         data = RequestDto(requestUrl, res)
         if res.status_code == 404 :
-            emptyData:dict = {}
-            emptyData["id"] =  data.getUrl().split("?id=")[1]
-            emptyData["is_active"] = "N"
-            processStack.append(self.mappingInactiveDto(emptyData))
+            appId = data.getUrl().split("?id=")[1]
+            processStack.append(DomParser.mappingInactiveDto(GoogleScrapService.__MARKET_NUM, appId))
         elif res.status_code == 429:
             raise TooManyRequest(requestUrl)
         else :
@@ -152,7 +153,7 @@ class GoogleScrapService(Service) :
         return appWithDeveloperWithResourceDto
     
     def mappingInactiveDto(self, data:dict ):
-        appDto = AppDto().ofGoogleInActive(data)
+        appDto = AppDto.ofInActive(data)
         
         appMarketDeveloperEntity = None
         
@@ -212,7 +213,7 @@ class GoogleScrapService(Service) :
             elif type(resultData) == list :
                 for value in resultData:
                     if type(value) == ErrorDto:
-                        logManager.error(value.toLog())
+                        logManager.byErrorDto(value)
                     else :        
                         responseResults.append(value)
             else : 
@@ -289,9 +290,12 @@ class GoogleScrapService(Service) :
         if len(appEntities) == 0 :
             return None
         self.__repository.saveBulkApp(appEntities)
+        timeChecker.stop(code="Repository-App")
+        
         findAllAppEntities = self.__repository.findAllApp(appEntities)
-                
+        
         #3. resource 등록 
+        timeChecker.start(code="Repository-Resource")
         AppResourceEntities:List[AppResourceEntity] = []
         for dto in dtos :
             appResourceEntity = dto.getAppResourceEntity
@@ -306,9 +310,7 @@ class GoogleScrapService(Service) :
                 appResourceEntity.setAppNum(findOneAppEntity.getNum)
                 AppResourceEntities.append(appResourceEntity)
             
-        timeChecker.stop(code="Repository-App")
         
-        timeChecker.start(code="Repository-Resource")
         self.__repository.saveResourceUseBulk(AppResourceEntities)    
         timeChecker.stop(code="Repository-Resource")
         

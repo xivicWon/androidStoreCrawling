@@ -47,9 +47,6 @@ class MobileIndexService (Service):
     
     def marketInfoSave(self, package) : 
         mIMarketInfoDto = self.__getGoogleMarket(package=package)     
-        
-        print("{} - {} - {}".format(mIMarketInfoDto.getPackageName, mIMarketInfoDto.getAppId , mIMarketInfoDto.getMappingCode))   
-        
         self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toAppleAppEntity())
         self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toGoogleAppEntity())
     
@@ -83,7 +80,7 @@ class MobileIndexService (Service):
                     or app["package_name"] == app["market_appid"]:
                     continue
             except TypeError as e :
-                print(e)
+                self.__log(e)
                 continue
             mIMarketInfoDto = MIMarketInfoDto()
             mIMarketInfoDto.setPackageName(app["package_name"])

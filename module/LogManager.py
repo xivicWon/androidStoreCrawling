@@ -2,6 +2,7 @@
 import logging, rootpath, os
 from multiprocessing import current_process
 from typing import Callable
+from dto.ErrorDto import ErrorDto
 from module.LogModule import LogModule
 from module.SingletonInstance import SingletonInstance
 from module.EnvManager import EnvManager
@@ -104,12 +105,6 @@ class LogManager(SingletonInstance, LogModule):
         for h in rootlogger.handlers:
             print('     {} - {}'.format(current_process().name, h))
 
-        # for nm, lgr in logging.Logger.manager.loggerDict.items():
-        #     print('+ [%-20s] %s ' % (nm, lgr))
-        #     if not isinstance(lgr, logging.PlaceHolder):
-        #         for h in lgr.handlers:
-        #             print('     %s' % h)
- 
     @staticmethod
     def disabledAllHandler() : 
         LogManager.listloggers()
@@ -118,3 +113,6 @@ class LogManager(SingletonInstance, LogModule):
             handler.close()
             logger.removeHandler(handler)
     
+    def byErrorDto(self, errorDto :ErrorDto) :
+        # FIXME : 각 에러코드의 Level 별로 다른 로그를 생성하도록 분기 처리 필요.
+        errorDto.toLog()

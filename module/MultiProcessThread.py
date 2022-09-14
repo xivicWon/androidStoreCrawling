@@ -102,8 +102,8 @@ class MultiProcessThread :
         for thread in allThreadList:
             thread.join()
         
-        info = "{}'s Result ]  {} / {} ".format(processName , len(responseList), jobCount)
-        q.put(info)
+        # info = "{}'s Result ]  {} / {} ".format(processName , len(responseList), jobCount)
+        # q.put(info)
         q.put(responseList)
         q.put(errorList)
             

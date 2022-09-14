@@ -17,10 +17,12 @@ class AppDto(Dto) :
     def __init__(self   ) -> None:
         pass
     
-    def ofGoogleInActive(self, data :dict):
-        self.appId = data["id"]
-        self.appIsActive =  data["is_active"] if "is_active" in data else "N"
-        return self 
+    @staticmethod
+    def ofInActive( appId:str):
+        appDto = AppDto()
+        appDto.appId = appId
+        appDto.appIsActive = "N"
+        return appDto 
     
     def ofGoogle(self, data:dict):
         self.appName = parse.unquote(data["name"])
@@ -41,33 +43,35 @@ class AppDto(Dto) :
         self.appIsActive =  data["is_active"] if "is_active" in data else "Y"
         return self 
     
-    def ofApple(self, data:dict):
-        self.appName = parse.unquote(data["name"])
-        self.appId = "id" + data["id"]
-        self.appRating = int(data["userRating"]["value"] * 10)
+    @staticmethod
+    def ofAppleCategory(data:dict):
+        appDto = AppDto()
+        appDto.appName = parse.unquote(data["name"])
+        appDto.appId = "id" + data["id"]
+        appDto.appRating = int(data["userRating"]["value"] * 10)
         
-        self.developerId = parse.unquote(data["relationships"]["developer"]["data"][0]["id"]) if "relationships" in data and "developer" in data["relationships"] and "data" in data["relationships"]["developer"] and len(data["relationships"]["developer"]["data"]) > 0 and "id" in data["relationships"]["developer"]["data"][0] else ""
-        self.developerName = parse.unquote(data["artistName"]) if "artistName" in data else ""
+        appDto.developerId = parse.unquote(data["relationships"]["developer"]["data"][0]["id"]) if "relationships" in data and "developer" in data["relationships"] and "data" in data["relationships"]["developer"] and len(data["relationships"]["developer"]["data"]) > 0 and "id" in data["relationships"]["developer"]["data"][0] else ""
+        appDto.developerName = parse.unquote(data["artistName"]) if "artistName" in data else ""
         if "artwork" in data and "url" in data["artwork"] :
             img:str = data["artwork"]["url"]
-            self.appImage = "/".join(img.split("/")[:-1]) + "/" + str(self.DEFAULT_IMAGE_WIDTH) + "x0w.webp"
+            appDto.appImage = "/".join(img.split("/")[:-1]) + "/" + str(appDto.DEFAULT_IMAGE_WIDTH) + "x0w.webp"
         else :
-            self.appImage = ""
+            appDto.appImage = ""
             
-        return self 
+        return appDto 
     
-    # def fileDownloadPoilcy(self, file:str)->bool:
-    #     return not os.path.isfile(file)
-        
-    # def downloadImg (self , toDir) -> str :
-    #     if self.appImage : 
-    #         os.makedirs(toDir, exist_ok=True)
-    #         # downloadFileToPath = toDir + "/" + uuid.uuid4().hex + ".png"
-    #         downloadFileToPath = toDir + "/" + self.appId + ".png"
-    #         if self.fileDownloadPoilcy(downloadFileToPath):
-    #             request.urlretrieve(self.appImage, downloadFileToPath)
-    #         return downloadFileToPath
-    #     return ""
+    @staticmethod
+    def ofAppleAppDetail(data:dict):
+        appDto = AppDto()
+        appDto.appName = parse.unquote(data["name"])
+        appDto.appId = "id" + data["id"]
+        appDto.appRating = int(data["aggregateRating"]["ratingValue"] * 10) if "aggregateRating" in data and "ratingValue" in data["aggregateRating"] else 0
+        developerUrl = data["author"]["url"] if "author" in data and "url" in data["author"] else ""
+        appDto.developerId = parse.unquote(developerUrl.split("/")[-1]) 
+        appDto.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
+        appDto.appImage = data["img"] if "img" in data else ""
+      
+        return appDto
     
     def getDeveloperId(self)->str : 
         return self.developerId

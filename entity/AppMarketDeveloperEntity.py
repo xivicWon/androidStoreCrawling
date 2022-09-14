@@ -28,12 +28,9 @@ class AppMarketDeveloperEntity(Entity) :
     
     @property
     def getDeveloperMarketId(self):
-        # return self.__developer_market_id.encode("UTF8").decode("unicode-escape")
         return self.__developer_market_id
     
-    
     def setDeveloperMarketId( self, developer_market_id:str):
-        # self.__developer_market_id = developer_market_id.encode("unicode-escape").decode("UTF8")
         self.__developer_market_id = developer_market_id
         return self
     
@@ -55,9 +52,6 @@ class AppMarketDeveloperEntity(Entity) :
         self.__company_num = obj["company_num"]
         self.__developer_name = obj["developer_name"]
         self.__developer_market_id = obj["developer_market_id"]
-        # emoji 방식으로 할 경우 php 에러 load convert 해줄 수 있어야함. 그 외 다른 서비스에서도... 그래서 제외.
-        # self.__developer_name = emoji.emojize(obj["developer_name"])
-        # self.__developer_market_id = emoji.emojize(obj["developer_market_id"])
         return self
     
     def ofManyDict(self , objs:List[Dict])->List:
