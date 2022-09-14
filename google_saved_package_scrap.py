@@ -33,8 +33,8 @@ def main() :
     logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
     logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
     multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM , offset=offset, limit=limit))
-    samples = ["com.kucoin.wallet"]
-    multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
+    # samples = ["com.kucoin.wallet"]
+    # multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
     
