@@ -1,4 +1,7 @@
 # 앱 스토어 스크래핑
+
+## v1.1.1 
+    - update datetime in log files [working]
 ## v1.1.0
     - add Apple 의 미등록앱 업데이트 파일 (updateAppleApp.py) 
     - update AppDto 
