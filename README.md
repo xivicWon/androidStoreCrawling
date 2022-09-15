@@ -11,6 +11,7 @@
     - expand ErrorDto - 원복
         - add ErrorCodeLevel 에러코드 레벨 설정 - 제거
         - add ErrorCodeValue 에러코드 값 - 제거
+    - mobileIndex MappingCode 생성오류 수정.
 ## v1.0.2
     - add bin/ 
         - add docker-compose_apple_category_scrap.yml

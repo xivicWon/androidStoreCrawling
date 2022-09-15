@@ -74,19 +74,30 @@ class MobileIndexService (Service):
         
         ranks = responseData["data"]
         for app in ranks : 
-            try :
-                if  app["market_name"] == "one" \
-                    or app["package_name"] == None \
-                    or app["package_name"] == app["market_appid"]:
-                    continue
-            except TypeError as e :
-                self.__log(e)
+            if "market_name" not in app or self.isOneStoreApp(app["market_name"]):
                 continue
-            mIMarketInfoDto = MIMarketInfoDto()
-            mIMarketInfoDto.setPackageName(app["package_name"])
-            mIMarketInfoDto.setAppId("id" + app["market_appid"])
-            appEntities.append(mIMarketInfoDto.toAppleAppEntity())
-            appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+            elif self.isAppleStoreApp(app["market_name"]) : 
+                mIMarketInfoDto = MIMarketInfoDto()
+                mIMarketInfoDto.generateMappingCode()
+                mIMarketInfoDto.setPackageName(app["package_name"])
+                mIMarketInfoDto.setAppId("id" + app["market_appid"])
+                appEntities.append(mIMarketInfoDto.toAppleAppEntity())
+                appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+            elif self.isGoogleStoreApp(app["market_name"]):
+                mIMarketInfoDto = MIMarketInfoDto()
+                mIMarketInfoDto.setPackageName(app["package_name"])
+                appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+                
+    
+    def isOneStoreApp(self, appStoreName:str ):
+        return appStoreName == "one"
+    
+    def isAppleStoreApp(self, appStoreName:str ):
+        return appStoreName == "apple"
+    
+    def isGoogleStoreApp(self, appStoreName:str ):
+        return appStoreName == "google"
+    
     
     def saveGlobalRank (self, appEntities:List[AppEntity]):
         AppIds:List[str] = []
