@@ -14,9 +14,9 @@ from entity.AppResourceEntity import AppResourceEntity
 
 class DomParser :
     __APPLE_MARKET_NUM:int = 2 
-    __APPLE_RESOURCE_DIR:str = "/resource/apple"
+    __APPLE_RESOURCE_DIR:str = "/images/apple"
     __GOOGLE_MARKET_NUM:int = 1
-    __GOOGLE_RESOURCE_DIR:str = "/resource/google"
+    __GOOGLE_RESOURCE_DIR:str = "/images/google"
     __UNDEFINED_APP_NAME: str = "undefined-app"
     
     @staticmethod

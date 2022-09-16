@@ -12,4 +12,4 @@ services:
     command: python starter.py mobileIndex_rank_api
     volumes:
       - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
-      - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/resource"
+      - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/images"

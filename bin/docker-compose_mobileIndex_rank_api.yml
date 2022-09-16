@@ -12,4 +12,4 @@ services:
     command: python starter.py mobileIndex_rank_api
     volumes:
       - /home/appstore/appstore_scraping:/app
-      - /data/appstore/images:/resource
+      - /data/appstore/images:/images

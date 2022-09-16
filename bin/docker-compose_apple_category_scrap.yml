@@ -12,5 +12,5 @@ services:
     command: python starter.py apple_category_scrap
     volumes:
       - /home/appstore/appstore_scraping:/app
-      - /data/appstore/images:/resource
+      - /data/appstore/images:/images
     
