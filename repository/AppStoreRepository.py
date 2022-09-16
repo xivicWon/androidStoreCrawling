@@ -341,7 +341,7 @@ class AppStoreRepository(Repository) :
 
     def saveResourceUseBulk(self, bulkResources: List[AppResourceEntity]):
         query = """
-            INSERT INTO apps_resource ( app_num, resource_type, path ) 
+            INSERT IGNORE INTO apps_resource ( app_num, resource_type, path ) 
             VALUES (%s, %s, %s)
         """
         fields = []

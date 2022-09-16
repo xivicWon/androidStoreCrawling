@@ -1,29 +1,15 @@
 # docker build -f [Source Directory Path with FileName] -t [imageName] .
 # ex) docker build -f D:\sample\thread\DockerFile -t [imageName] .
 # ex) docker build -f /home/appstore/appstore_scraping/DockerFile -t appstore_scraping .
+# ex) For Window : docker build -f .\DockerFile -t appstore_scraping .
 
 FROM python:3.9-slim-buster
 LABEL Jaime Won="xivic@kakao.com"
 
-ENV ROOTPATH=/
+ENV ROOTPATH=/app
 WORKDIR $ROOTPATH
 
 RUN pip3 install --upgrade pip --ignore-install
 
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
-
-COPY annotation annotation
-COPY dto dto
-COPY entity entity
-COPY exception exception
-COPY module module
-COPY repository repository
-COPY service service
-COPY .env .
-COPY apple_category_scrap.py .
-COPY google_saved_package_scrap.py .
-COPY mobileIndex_rank_api.py .
-COPY starter.py .
-
-CMD python starter.py $ACTION

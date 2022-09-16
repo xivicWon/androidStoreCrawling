@@ -7,6 +7,7 @@ services:
     image: appstore_scraping:latest
     environment:
       - ACTION=apple_category_scrap
+      - TZ=Asia/Seoul
     volumes:
       - /data/appstore/images:/resource
       - /home/appstore/appstore_scraping/logs:/logs
@@ -15,6 +16,7 @@ services:
     image: appstore_scraping:latest
     environment:
       - ACTION=google_saved_package_scrap
+      - TZ=Asia/Seoul
     volumes:
       - /data/appstore/images:/resource
       - /home/appstore/appstore_scraping/logs:/logs
@@ -23,6 +25,7 @@ services:
     image: appstore_scraping:latest
     environment:
       - ACTION=mobileIndex_rank_api
+      - TZ=Asia/Seoul
     volumes:
       - /data/appstore/images:/resource
       - /home/appstore/appstore_scraping/logs:/logs

@@ -119,7 +119,7 @@ class DomParser :
             msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
             raise TypeError(msg)
         
-        return DomParser.getAppWithDeveloperWithResourceDto(marketNum=marketNum , appDto = AppDto.ofGoogle(data) )
+        return DomParser.getAppWithDeveloperWithResourceDto(marketNum=marketNum , appDto = AppDto.ofGoogle(data), resourceDirectory= resourceDirectory)
         
         
         

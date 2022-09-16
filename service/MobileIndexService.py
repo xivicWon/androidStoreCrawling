@@ -66,13 +66,14 @@ class MobileIndexService (Service):
         if response.status_code == 200 :
             responseData = response.json() 
         elif response.status_code == 403:
-            self.__log.error("MobileIndexService - [Forbidden Error] - 403 - {}".format(json.dumps(dto.toDict())))
+            self.__log.error("MobileIndexService - [Forbidden] - 403 - {}".format(json.dumps(dto.toDict())))
             return 
         else : 
-            self.__log.error("MobileIndexService - [ Error] - {} - {}".format(response.status_code, json.dumps(dto.toDict())))
+            self.__log.error("MobileIndexService - {} - {}".format(response.status_code, json.dumps(dto.toDict())))
             return 
         
         ranks = responseData["data"]
+        
         for app in ranks : 
             if "market_name" not in app or self.isOneStoreApp(app["market_name"]):
                 continue
@@ -110,5 +111,5 @@ class MobileIndexService (Service):
                 continue
             saveAppEntities.append(appEntity)
             AppIds.append(currentId)
-        self.__log.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(AppIds)))
+        self.__log.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(appEntities)))
         self.__appStoreRepository.saveAppMappingUseBulk(saveAppEntities)

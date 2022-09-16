@@ -16,11 +16,12 @@ if __name__  == '__main__' :
     envManager = EnvManager.instance()
     logManager = LogManager.instance()
     logManager.init(envManager)
-    openDB: OpenDB = OpenDB(host=envManager.DB_HOST, 
-                            username=envManager.DB_USER , 
-                            password=envManager.DB_PASSWORD , 
-                            database=envManager.DB_DATABASE,
-                            logModule=logManager)
+    openDB: OpenDB = OpenDB(
+        host=envManager.DB_HOST, 
+        username=envManager.DB_USER , 
+        password=envManager.DB_PASSWORD , 
+        database=envManager.DB_DATABASE,
+        logModule=logManager)
     
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager)
     mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository, logModule=logManager)
@@ -44,7 +45,9 @@ if __name__  == '__main__' :
                     mIRequestDto.setMarket("all")
                 else : 
                     mIRequestDto.setMarket("google")
-                mIRequestDto.setDate(datetime.datetime.now().strftime("%Y%m%d"))
+                    
+                yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+                mIRequestDto.setDate(yesterday.strftime("%Y%m%d"))
                 mIRequestDto.setStartRank(1)
                 mIRequestDto.setEndRank(100)
                 mIRequestDto.setCounty(country)

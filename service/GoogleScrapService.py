@@ -107,8 +107,6 @@ class GoogleScrapService(Service) :
                 errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , msg))
             except TypeError  :
                 msg = "getResponse Fail : {}".format(requestUrl)
-                d = ErrorDto.build(ErrorCode.TYPE_ERROR , msg)
-                print (d.code)
                 errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , msg))
                 
     def consumerProcess(self, q: Queue):

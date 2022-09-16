@@ -9,5 +9,5 @@ services:
       - TZ=Asia/Seoul
     command: python starter.py google_saved_package_scrap
     volumes:
-      - /home/appstore/appstore_scraping:/app
-      - /data/appstore/images:/app/resource
+      - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
+      - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/app/resource"
