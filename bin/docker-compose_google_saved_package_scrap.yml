@@ -3,6 +3,8 @@
 version: '3.9'
 services:
   google_saved_package_scrap:
+    env_file:
+      - app.env
     container_name: google_saved_package_scrap
     image: appstore_scraping:latest
     environment:
@@ -10,4 +12,4 @@ services:
     command: python starter.py google_saved_package_scrap
     volumes:
       - /home/appstore/appstore_scraping:/app
-      - /data/appstore/images:/app/resource
+      - /data/appstore/images:/resource

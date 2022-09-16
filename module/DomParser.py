@@ -14,9 +14,9 @@ from entity.AppResourceEntity import AppResourceEntity
 
 class DomParser :
     __APPLE_MARKET_NUM:int = 2 
-    __APPLE_RESOURCE_DIR:str = "./resource/apple"
+    __APPLE_RESOURCE_DIR:str = "/resource/apple"
     __GOOGLE_MARKET_NUM:int = 1
-    __GOOGLE_RESOURCE_DIR:str = "./resource/google"
+    __GOOGLE_RESOURCE_DIR:str = "/resource/google"
     __UNDEFINED_APP_NAME: str = "undefined-app"
     
     @staticmethod
@@ -140,16 +140,20 @@ class DomParser :
             .setIsActive("Y")\
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
+        try :
+            imagePath = AppDto.downloadImg(
+                downloadLink=appDto.appImage, 
+                toDirectory=resourceDirectory, 
+                fileName=appEntity.getId
+                )
+        except ValueError as e : 
+            print(AppDto.toString())
+            print (e)
             
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\
             .setResourceType("icon")\
-            .setPath(
-                AppDto.downloadImg(
-                    downloadLink=appDto.appImage, 
-                    toDirectory=resourceDirectory, 
-                    fileName=appEntity.getId)
-                )
+            .setPath(imagePath)
             
         return AppWithDeveloperWithResourceDto()\
             .setAppEntity(appEntity)\

@@ -98,7 +98,7 @@ class AppDto(Dto) :
         os.makedirs(toDirectory, exist_ok=True)
         downloadFileToPath = "{}/{}.png".format(toDirectory , fileName )
         if not os.path.isfile(downloadFileToPath):
-            (fileName , Headers) = request.urlretrieve(downloadLink, downloadFileToPath)
+            (fileName , Headers) = request.urlretrieve(url=downloadLink, filename=downloadFileToPath)
             return fileName 
         else :
             return downloadFileToPath

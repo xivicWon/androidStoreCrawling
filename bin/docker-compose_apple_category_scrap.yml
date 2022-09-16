@@ -3,6 +3,8 @@
 version: '3.9'
 services:
   apple_category_scrap:
+    env_file:
+      - app.env
     container_name: apple_category_scrap
     image: appstore_scraping:latest
     environment:
@@ -10,5 +12,5 @@ services:
     command: python starter.py apple_category_scrap
     volumes:
       - /home/appstore/appstore_scraping:/app
-      - /data/appstore/images:/app/resource
+      - /data/appstore/images:/resource
     

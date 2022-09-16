@@ -4,9 +4,12 @@
         - 역할 분리( docker, docker-compose )
         - add Window 용 docker-compose
         - set container timezone, command
+        - update resource path
     - update mobileIndex 수집시 전날데이터를 요청 (당일 데이터 업데이트 안됨)
     - fix GoogleImage Download Process
     - fix apps_resource query for duplicate key error
+    - add app.env in docker-compose 
+
 ## v1.1.1 
     - update datetime in log files [working]
 ## v1.1.0
