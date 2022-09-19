@@ -28,15 +28,16 @@ def main() :
         supplier=appScrapService.threadProductor
     )
     
+    offset:int = 0
+    limit:int = 10000
     logManager.info("Market : Apple / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    multiProcess.addThreadJob(appScrapService.requestWorkListFromDB())
+    multiProcess.addThreadJob(appScrapService.getNoNameAppList(offset, limit))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
 
 if __name__  == '__main__' :
     PROCESS_COUNT = 5
     MAX_THREAD_COUNT = 100
-    MARKET_NUM = 2 
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
     main()

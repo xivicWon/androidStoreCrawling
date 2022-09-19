@@ -34,24 +34,41 @@ from service.Service import Service
 class AppleScrapService(Service) : 
     __MARKET_NUM:int = 2 
     __repository:Repository
+    __APP_ID_URL:str = "https://apps.apple.com/kr/app/"
     
     def __init__(self,repository:Repository) -> None:
         super().__init__()
         self.__repository = repository
         pass
         
-    def requestWorkListFromDB( self, marketNum:int  ) :
-        appMartetScrapList = self.__repository.findMarketScrapUrl(marketNum)
+    def requestWorkListFromDB( self ) :
+        appMartetScrapList = self.__repository.findMarketScrapUrl(self.__MARKET_NUM)
         crwlingJob:List[str] = []
         if type(appMartetScrapList) == list:
             for appMartetScrap in appMartetScrapList :
                 urls = appMartetScrap.getScrapUrl()
                 crwlingJob.extend(urls)
         else :
-            print("조회된 스크랩대상 데이터가 없음 {} {} {} ".format(marketNum))
+            print("조회된 스크랩대상 데이터가 없음 {} {} {} ".format(self.__MARKET_NUM))
             exit()
         return crwlingJob
     
+    
+    def getNoNameAppList(self, offset:int , limit: int ) : 
+        appList = self.__repository.findNoNameAppLimitedToRecently(self.__MARKET_NUM , offset , limit)
+        crwlingJob:List[str] = []
+        if type(appList) == list:
+            for appEntity in appList :
+                url = self.__APP_ID_URL + appEntity.getId
+                crwlingJob.append(url)
+        else :
+            msg = "조회된 스크랩대상 데이터가 없음 {} ".format(self.__MARKET_NUM)
+            print(msg)
+            exit()
+        return crwlingJob
+    
+        
+        
             
     def threadProductor(self, url : str,  processStack:List[Dto], errorStack:List[ErrorDto] ):
         repeatCount = 0

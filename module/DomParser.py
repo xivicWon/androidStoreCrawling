@@ -145,10 +145,9 @@ class DomParser :
                 downloadLink=appDto.appImage, 
                 toDirectory=resourceDirectory, 
                 fileName=appEntity.getId
-                )
+            )
         except ValueError as e : 
-            print(AppDto.toString())
-            print (e)
+            raise ValueError(AppDto.toString())
             
         appResourceEntity = AppResourceEntity()\
             .setAppNum(0)\

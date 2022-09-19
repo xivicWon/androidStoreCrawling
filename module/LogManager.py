@@ -114,5 +114,4 @@ class LogManager(SingletonInstance, LogModule):
             logger.removeHandler(handler)
     
     def byErrorDto(self, errorDto :ErrorDto) :
-        # FIXME : 각 에러코드의 Level 별로 다른 로그를 생성하도록 분기 처리 필요.
-        errorDto.toLog()
+        self.error(errorDto.toLog())

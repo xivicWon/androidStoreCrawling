@@ -14,7 +14,8 @@ if __name__ == "__main__":
     fileMapper = {
         "apple_category_scrap" : "apple_category_scrap.py",
         "google_saved_package_scrap" : "google_saved_package_scrap.py",
-        "mobileIndex_rank_api" : "mobileIndex_rank_api.py"
+        "mobileIndex_rank_api" : "mobileIndex_rank_api.py",
+        "apple_no_name_update" : "apple_no_name_update.py"
     }
     try : 
         action = sys.argv[1]

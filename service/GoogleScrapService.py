@@ -33,7 +33,7 @@ class GoogleScrapService(Service) :
     __MAX_RETRY_COUNT:int = 3 
     __repository:Repository
     __UNDEFINED_APP_NAME: str = "undefined-app"
-    __PACKAGE_URL:str = "https://play.google.com/store/apps/details?id="
+    __APP_ID_URL:str = "https://play.google.com/store/apps/details?id="
     __RESOURCE_DIR:str = "./resource/google"
         
     def __init__(self,repository:Repository) -> None:
@@ -48,7 +48,7 @@ class GoogleScrapService(Service) :
         crwlingJob:List[str] = []
         if type(appList) == list:
             for appEntity in appList :
-                url = self.__PACKAGE_URL + appEntity.getId
+                url = self.__APP_ID_URL + appEntity.getId
                 crwlingJob.append(url)
         else :
             msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
@@ -102,11 +102,11 @@ class GoogleScrapService(Service) :
                 else :
                     msg = "getResponse Fail : {}".format(requestUrl)
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , msg))
-            except AttributeError   :
-                msg = "getResponse Fail : {}".format(requestUrl)
+            except AttributeError  as e  :
+                msg = "getResponse Fail : {}".format(requestUrl) + e 
                 errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , msg))
-            except TypeError  :
-                msg = "getResponse Fail : {}".format(requestUrl)
+            except TypeError as e  :
+                msg = "getResponse Fail : {} ".format(requestUrl) + e 
                 errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , msg))
                 
     def consumerProcess(self, q: Queue):
@@ -117,6 +117,7 @@ class GoogleScrapService(Service) :
         while ( True ):
             try :
                 resultData = q.get()
+                print(resultData)
             except ValueError as e :
                 print("ERROR : {} {}".format(e, resultData))
                 continue
