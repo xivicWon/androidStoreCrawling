@@ -54,6 +54,8 @@ class GoogleScrapService(Service) :
     def threadProducer(self, threadJobDto : ThreadJobDto, processStack:List[Dto], errorStack:List[Dto]):
         requestUrl = threadJobDto.getUrl
         data = self.requestUrl(requestUrl, errorStack )
+        if data == None:
+            return
         res = data.getResponse
         if res.status_code == 404 :
             appId = data.getUrl.split("?id=")[1]
@@ -93,6 +95,7 @@ class GoogleScrapService(Service) :
             return RequestDto(url, res)
         except requests.exceptions.ConnectionError: 
             errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , url))
+            
         except UrllibError.URLError :
             errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , url))
         except TooManyRequest:
@@ -103,6 +106,7 @@ class GoogleScrapService(Service) :
         #     errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , e))
         # except TypeError as e : 
         #     errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , e))
+        return None
                 
     def consumerProcess(self, q: Queue):
         envManager = EnvManager.instance()

@@ -68,17 +68,10 @@ class AppleScrapService(Service) :
             
     def threadProducer(self, threadJobDto : ThreadJobDto,  processStack:List[Dto], errorStack:List[ErrorDto] ):
         url = threadJobDto.getUrl
-        try:
-            data = self.requestUrl(url, errorStack)
-        except requests.exceptions.ReadTimeout: 
-            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "request URL : {}".format( url)))
-        except AttributeError:
-            errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , url))
-        except UrllibError.URLError :
-            errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , url))
-        except TooManyRequest:
-            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , url))
-    
+        data = self.requestUrl(url, errorStack)
+        if data == None:
+            return
+        
         res = data.getResponse
         if res.status_code == 200:
             if self.isCategoryURL(url):
@@ -109,14 +102,17 @@ class AppleScrapService(Service) :
         try :
             res:requests.Response = Curl.request(method=CurlMethod.GET, url=url, headers=header, data=None ,timeout=10)
             return RequestDto(url, res)
+        except requests.exceptions.ReadTimeout: 
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "request URL : {}".format( url)))
         except requests.exceptions.ConnectionError: 
             errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , url))
         except requests.exceptions.ChunkedEncodingError:
             errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , url))
-        except AttributeError as e : 
-            errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , e))
-        except TypeError as e : 
-            errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , e))
+        except TooManyRequest:
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , url))
+        except UrllibError.URLError :
+            errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , url))
+        return None
     
     def isCategoryURL(self, url:str):
         return url.startswith("https://apps.apple.com/kr/charts")
