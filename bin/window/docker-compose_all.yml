@@ -1,13 +1,16 @@
-# docker-compose -f /home/appstore/appstore_scraping/sample/docker-compose.yml down
+# docker-compose -f /home/appstore/appstore_scraping/sample/docker-compose.yml up
 
 version: '3.9'
 services:
-  apple_category_scrap:
-    container_name: apple_category_scrap
+  appleScrapByCategory:
+    container_name: appleScrapByCategory
     image: appstore_scraping:latest
-  google_saved_package_scrap:
-    container_name: google_saved_package_scrap
+  appleScrapBySavedID:
+    container_name: appleScrapBySavedID
     image: appstore_scraping:latest
-  mobileIndex_rank_api:
-    container_name: mobileIndex_rank_api
+  googleScrapBySavedID:
+    container_name: googleScrapBySavedID
+    image: appstore_scraping:latest
+  mobileIndexRankApi:
+    container_name: mobileIndexRankApi
     image: appstore_scraping:latest

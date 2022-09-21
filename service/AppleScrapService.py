@@ -1,18 +1,14 @@
-import os
+import datetime
+import random
 import sys, rootpath
-from unittest import result
-
-
-
-
+import requests
 sys.path.append(rootpath.detect())
-import requests, json
+
+from dto.ThreadJobDto import ThreadJobDto
+from module.FileManager import FileManager
 from typing import  Callable, List, Optional
-from bs4 import BeautifulSoup as bs
-from bs4.element import Tag
 from multiprocessing import Queue
 from dto.Dto import Dto
-from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
 from dto.ErrorDto import ErrorCode, ErrorDto
@@ -35,13 +31,14 @@ class AppleScrapService(Service) :
     __MARKET_NUM:int = 2 
     __repository:Repository
     __APP_ID_URL:str = "https://apps.apple.com/kr/app/"
+    __RESOURCE_DIR:str = "/images/apple"
     
     def __init__(self,repository:Repository) -> None:
         super().__init__()
         self.__repository = repository
         pass
         
-    def requestWorkListFromDB( self ) :
+    def getThreadJobOfAppleCategory( self ) :
         appMartetScrapList = self.__repository.findMarketScrapUrl(self.__MARKET_NUM)
         crwlingJob:List[str] = []
         if type(appMartetScrapList) == list:
@@ -51,60 +48,67 @@ class AppleScrapService(Service) :
         else :
             print("조회된 스크랩대상 데이터가 없음 {} {} {} ".format(self.__MARKET_NUM))
             exit()
-        return crwlingJob
+            
+        return list(map( lambda s: ThreadJobDto(url = s) , crwlingJob))
     
     
-    def getNoNameAppList(self, offset:int , limit: int ) : 
-        appList = self.__repository.findNoNameAppLimitedToRecently(self.__MARKET_NUM , offset , limit)
-        crwlingJob:List[str] = []
-        if type(appList) == list:
-            for appEntity in appList :
-                url = self.__APP_ID_URL + appEntity.getId
-                crwlingJob.append(url)
-        else :
+    def getNoNameOrNoImageApps(self, offset:int , limit: int ) : 
+        appList = self.__repository.findNoNameAppLimitedTo(self.__MARKET_NUM , offset , limit)
+        crwlingJob:List[ThreadJobDto] = []
+        if type(appList) != list:
             msg = "조회된 스크랩대상 데이터가 없음 {} ".format(self.__MARKET_NUM)
             print(msg)
             exit()
-        return crwlingJob
-    
-        
-        
             
-    def threadProductor(self, url : str,  processStack:List[Dto], errorStack:List[ErrorDto] ):
-        repeatCount = 0
+        for dto in appList :
+            url = self.__APP_ID_URL + dto.getAppEntity.getId
+            resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
+            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir, dto=dto))
+        return crwlingJob
+            
+    def threadProducer(self, threadJobDto : ThreadJobDto,  processStack:List[Dto], errorStack:List[ErrorDto] ):
+        url = threadJobDto.getUrl
         try:
-            self.requestUrl(url, processStack, errorStack)
+            data = self.requestUrl(url, errorStack)
         except requests.exceptions.ReadTimeout: 
-            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "repeatCount : {} request URL : {}".format(repeatCount, url)))
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , "request URL : {}".format( url)))
         except AttributeError:
             errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , url))
         except UrllibError.URLError :
             errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , url))
         except TooManyRequest:
             errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , url))
-            
-    def requestUrl(self, url : str, processStack:List[Dto] , errorStack:List[ErrorDto]):
-        try :
-            header = {"Accept-Language" : "ko-KR"}
-            res:requests.Response = Curl.request(method=CurlMethod.GET, url=url, headers=header, data=None ,timeout=10)
-            data = RequestDto(url, res)
-            if res.status_code == 200:
-                if self.isCategoryURL(url):
-                    appWithDeveloperEntityList:List[AppWithDeveloperWithResourceDto] = DomParser.parseAppleCategory(data.getResponse())
-                    if type(appWithDeveloperEntityList) == list :
-                        processStack.extend(appWithDeveloperEntityList)
-                    else :
-                        errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , url))
+    
+        res = data.getResponse
+        if res.status_code == 200:
+            if self.isCategoryURL(url):
+                appWithDeveloperEntityList:List[AppWithDeveloperWithResourceDto] = DomParser.parseAppleCategory(res)
+                if type(appWithDeveloperEntityList) == list :
+                    processStack.extend(appWithDeveloperEntityList)
                 else :
-                    processStack.append(DomParser.parseAppleAppDetail(data.getResponse()))
-            elif res.status_code == 429:
-                raise TooManyRequest(url)
-            elif res.status_code == 404:
-                appId = data.getUrl().split("/")[-1]
-                processStack.append(DomParser.mappingInactiveDto(AppleScrapService.__MARKET_NUM, appId))
-            else:
-                raise requests.exceptions.ReadTimeout(url)
-            
+                    errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , url))
+            else :
+                FileManager.makeDirs(threadJobDto.getResourceDir)
+                appDto = DomParser.parseAppleAppDetail(res)                
+                result = DomParser.getAppWithDeveloperWithResourceDto (
+                    appDto=appDto,
+                    marketNum=self.__MARKET_NUM, 
+                    resourceDirectory=threadJobDto.getResourceDir)
+                processStack.append(result)
+        elif res.status_code == 429:
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , url))
+        elif res.status_code == 404:
+            appId = url.split("/")[-1]
+            processStack.append(DomParser.mappingInactiveDto(AppleScrapService.__MARKET_NUM, appId))
+        else:
+            raise requests.exceptions.ReadTimeout(url)
+        
+        
+    def requestUrl(self, url : str,  errorStack:List[ErrorDto]):
+        header = {"Accept-Language" : "ko-KR"}
+        try :
+            res:requests.Response = Curl.request(method=CurlMethod.GET, url=url, headers=header, data=None ,timeout=10)
+            return RequestDto(url, res)
         except requests.exceptions.ConnectionError: 
             errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , url))
         except requests.exceptions.ChunkedEncodingError:
@@ -135,7 +139,7 @@ class AppleScrapService(Service) :
                         responseResults.append(value)
             else : 
                 # FIXME: 로그로 작성.
-                print("로그작성필요 : {}".format(resultData))
+                logManager.error("로그작성필요 : {}".format(resultData))
                 
         if len(responseResults) > 0 :
             self.updateResponseToRepository(responseResults)
@@ -146,7 +150,7 @@ class AppleScrapService(Service) :
         condition: Callable[[AppWithDeveloperWithResourceDto] , Optional[AppMarketDeveloperEntity]] = lambda dto : dto.getAppMarketDeveloperEntity
         conditionWithoutNone: Callable[[AppMarketDeveloperEntity], AppMarketDeveloperEntity ] = lambda e : type(e) == AppMarketDeveloperEntity
         appMarketDeveloperEntities = list(filter( conditionWithoutNone, map(condition ,dtos)))
-       
+     
         if len(appMarketDeveloperEntities) > 0 :
             self.__repository.saveBulkDeveloper(appMarketDeveloperEntities)
         return appMarketDeveloperEntities
@@ -170,16 +174,16 @@ class AppleScrapService(Service) :
         appEntities:List[AppEntity] = []
         for dto in dtos :
             appEntity = dto.getAppEntity
-            if appEntity.getIsActive == 'Y' :
-                appMarketDeveloperEntity = dto.getAppMarketDeveloperEntity
+            appEntities.append(appEntity)
+            appMarketDeveloperEntity = dto.getAppMarketDeveloperEntity
+            if appEntity.getIsActive == 'Y' and appMarketDeveloperEntity != None :
                 filterDeveloperEntity:Callable[[AppMarketDeveloperEntity] , bool] = lambda t : t.getDeveloperMarketId == appMarketDeveloperEntity.getDeveloperMarketId
                 findOneAppMarketDeveloperEntity:AppMarketDeveloperEntity = next(filter( filterDeveloperEntity, findAllAppMarketDeveloperEntities), None)
                 if findOneAppMarketDeveloperEntity == None:
                     print("Error [Not Found AppMarketDeveloperEntity] : {}".format(appMarketDeveloperEntity.toString()))
                     continue
                 appEntity.setDeveloperNum(findOneAppMarketDeveloperEntity.getNum)
-            appEntities.append(appEntity)
-            
+        
         self.__repository.saveBulkApp(appEntities)
         timeChecker.stop(code="Repository-App")
         findAllAppEntities = self.__repository.findAllApp(appEntities)
@@ -189,16 +193,18 @@ class AppleScrapService(Service) :
         AppResourceEntities:List[AppResourceEntity] = []
         for dto in dtos :
             appResourceEntity = dto.getAppResourceEntity
-            if appResourceEntity != None : 
-                appEntity = dto.getAppEntity
-                filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
-                findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
-                if findOneAppEntity == None :
-                    msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
-                    logManager.error(msg)
-                    continue
-                appResourceEntity.setAppNum(findOneAppEntity.getNum)
-                AppResourceEntities.append(appResourceEntity)
+            if appResourceEntity == None : 
+                continue
+            
+            appEntity = dto.getAppEntity
+            filterAppEntity:Callable[[AppEntity] , bool] = lambda t : t.getId == appEntity.getId
+            findOneAppEntity:AppEntity = next(filter(filterAppEntity, findAllAppEntities), None)
+            if findOneAppEntity == None :
+                msg = "Error [Not Found AppEntity] : {}".format(appEntity.toString())
+                logManager.error(msg)
+                continue
+            appResourceEntity.setAppNum(findOneAppEntity.getNum)
+            AppResourceEntities.append(appResourceEntity)
         
         self.__repository.saveResourceUseBulk(AppResourceEntities)    
         timeChecker.stop(code="Repository-Resource")

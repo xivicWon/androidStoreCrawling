@@ -2,14 +2,16 @@
 
 version: '3.9'
 services:
-  mobileIndex_rank_api:
+  mobileIndexRankApi:
     env_file:
       - app.env
-    container_name: mobileIndex_rank_api
+    container_name: mobileIndexRankApi
     image: appstore_scraping:latest
     environment:
       - TZ=Asia/Seoul
-    command: python starter.py mobileIndex_rank_api
+    command: python starter.py mobileIndexRankApi
     volumes:
       - /home/appstore/appstore_scraping:/app
       - /data/appstore/images:/images
+
+

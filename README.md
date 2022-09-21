@@ -1,4 +1,12 @@
 # 앱 스토어 스크래핑
+## v1.2.2
+    - mapping_code 초기화 문제 수정(mobileIndex 에서 초기화해주는 코드 확인 및 수정)
+    - 이미지 조회 및 데이터 업데이트 파일 ( checkIconExist.py)
+    - Remove deprecated Files 
+    - Files Rename : snake > camel
+    - Create New Container => appleScrapBySavedID.py
+    - apple category 처리시 App 정보만 저장(developer x, icon x ) 
+    - Resource 파일저장경로 개선 (날짜[Ym] + random( 1~20))
 ## v1.2.1 
     - update DockerFile, docker-compose 
         - 역할 분리( docker, docker-compose )

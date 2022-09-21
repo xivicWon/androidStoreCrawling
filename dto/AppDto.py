@@ -11,7 +11,6 @@ class AppDto(Dto) :
     appName: str
     appId : str
     appRating : int
-    appImageSavaPath:str = "upload"
     appImage : str 
     appIsActive: str
     def __init__(self   ) -> None:
@@ -94,9 +93,12 @@ class AppDto(Dto) :
         return self.appImage
     
     @staticmethod
-    def downloadImg (downloadLink:str, toDirectory:str, fileName:str) -> str :
+    def downloadImg (downloadLink:str, toDirectory:str, fileName:str, force:bool = False) -> str :
         os.makedirs(toDirectory, exist_ok=True)
         downloadFileToPath = "{}/{}.png".format(toDirectory , fileName )
+        if force : 
+            os.remove(downloadFileToPath)
+            
         if not os.path.isfile(downloadFileToPath):
             (fileName , Headers) = request.urlretrieve(url=downloadLink, filename=downloadFileToPath)
             return fileName 

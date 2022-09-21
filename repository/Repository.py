@@ -1,4 +1,5 @@
 from typing import List, Optional
+from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from entity.AppMarketScrap import AppMarketScrap
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
@@ -15,7 +16,7 @@ class Repository :
     def findAllApp(self, appEntities : List[AppEntity]) ->Optional[List[AppEntity]]:
         pass
     
-    def findNoNameAppLimitedToRecently(self , market_num:int,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+    def findNoNameAppLimitedTo(self , market_num:int,  offset :int , limit :int ) -> Optional[List[AppWithDeveloperWithResourceDto]]:  
         pass
     
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  

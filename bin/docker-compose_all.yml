@@ -2,18 +2,15 @@
 
 version: '3.9'
 services:
-  apple_category_scrap:
-    container_name: apple_category_scrap
+  appleScrapByCategory:
+    container_name: appleScrapByCategory
     image: appstore_scraping:latest
-    environment:
-      - TZ=Asia/Seoul
-  google_saved_package_scrap:
-    container_name: google_saved_package_scrap
+  appleScrapBySavedID:
+    container_name: appleScrapBySavedID
     image: appstore_scraping:latest
-    environment:
-      - TZ=Asia/Seoul
-  mobileIndex_rank_api:
-    container_name: mobileIndex_rank_api
+  googleScrapBySavedID:
+    container_name: googleScrapBySavedID
     image: appstore_scraping:latest
-    environment:
-      - TZ=Asia/Seoul
+  mobileIndexRankApi:
+    container_name: mobileIndexRankApi
+    image: appstore_scraping:latest

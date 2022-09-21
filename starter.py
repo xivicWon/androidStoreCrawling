@@ -12,10 +12,10 @@ if __name__ == "__main__":
     logManager = LogManager.instance()
     logManager.init(envManager)
     fileMapper = {
-        "apple_category_scrap" : "apple_category_scrap.py",
-        "google_saved_package_scrap" : "google_saved_package_scrap.py",
-        "mobileIndex_rank_api" : "mobileIndex_rank_api.py",
-        "apple_no_name_update" : "apple_no_name_update.py"
+        "appleScrapByCategory" : "appleScrapByCategory.py",
+        "googleScrapBySavedID" : "googleScrapBySavedID.py",
+        "mobileIndexRankApi" : "mobileIndexRankApi.py",
+        "appleScrapBySavedID" : "appleScrapBySavedID.py"
     }
     try : 
         action = sys.argv[1]

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from logging import Logger
-from typing import Final, List, Optional, Tuple
+
+from typing import List, Optional, Tuple
+from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 
 from repository.Repository import Repository
 from entity.AppMarketScrap import AppMarketScrap
@@ -33,21 +34,25 @@ class AppStoreRepository(Repository) :
             return None
         
     
-    def findNoNameAppLimitedToRecently(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+    def findNoNameAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppWithDeveloperWithResourceDto]]:  
         query = """
             SELECT  *
-            FROM    app
-            WHERE   app_name IS NULL
+            FROM    app AS A
+                LEFT JOIN apps_resource AS R    
+                    ON A.num = R.app_num 
+            WHERE   ((app_name IS NULL or app_name = '') OR R.num is null)
+                AND app_name <> 'undefined-app'                
                 AND market_num = %s
-            ORDER BY num DESC
-            LIMIT   %s , %s
+            LIMIT   %s, %s
         """
         field = (market_num, offset , limit)
         result = self.dbManager.select(query ,field)
         if type(result) == list : 
-            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+            return list(map( lambda t : AppWithDeveloperWithResourceDto()
+                            .setAppEntity( AppEntity().ofDict(t))
+                            .setAppResourceEntity(AppResourceEntity().ofDict(t)), result )) 
         else :
-            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
+            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
             return None
         
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
@@ -374,3 +379,22 @@ class AppStoreRepository(Repository) :
             
         return self.dbManager.insertBulk(query, fields)
         
+        
+    
+    def findHasNoResourceApp(self,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+        query = """
+            SELECT  *
+            FROM    app AS A 
+                LEFT JOIN apps_resource AS R 
+                    ON A.num = R.app_num 
+            WHERE   A.is_active = 'Y'
+                AND R.num is null
+            LIMIT   %s , %s
+        """
+        field = ( offset , limit)
+        result = self.dbManager.select(query ,field)
+        if type(result) == list : 
+            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+        else :
+            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
+            return None

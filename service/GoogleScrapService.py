@@ -1,22 +1,19 @@
-import os
+import datetime
+import random
 import sys, rootpath
-
-
 sys.path.append(rootpath.detect())
-
-import requests, json
+import requests
+from module.FileManager import FileManager
+from dto.ThreadJobDto import ThreadJobDto
 from dto.ErrorDto import ErrorCode, ErrorDto
 from repository.Repository import Repository
 from service.Service import Service
 from urllib import error as UrllibError
 from typing import  Callable, List, Optional
-from bs4 import BeautifulSoup as bs
 from multiprocessing import Queue
 from dto.Dto import Dto
-from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.RequestDto import RequestDto
-from dto.htmlDom.Tag_A import Tag_A
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
@@ -30,75 +27,50 @@ from exception.TooManyRequest import TooManyRequest
 
 class GoogleScrapService(Service) : 
     __MARKET_NUM:int = 1  
-    __MAX_RETRY_COUNT:int = 3 
     __repository:Repository
-    __UNDEFINED_APP_NAME: str = "undefined-app"
     __APP_ID_URL:str = "https://play.google.com/store/apps/details?id="
-    __RESOURCE_DIR:str = "./resource/google"
+    __RESOURCE_DIR:str = "/images/google"
         
     def __init__(self,repository:Repository) -> None:
         super().__init__()
         self.__repository = repository
-        if not os.path.exists(self.__RESOURCE_DIR):
-            os.makedirs(self.__RESOURCE_DIR)
-        pass
             
-    def requestWorkListFromDB( self, marketNum:int, offset:int , limit:int ) :
-        appList = self.__repository.findNoNameAppLimitedToRecently(marketNum,offset , limit)
+    def getThreadJobOfNoNameApps( self, marketNum:int, offset:int , limit:int ) :
+        appList = self.__repository.findNoNameAppLimitedTo(marketNum,offset , limit)
         crwlingJob:List[str] = []
-        if type(appList) == list:
-            for appEntity in appList :
-                url = self.__APP_ID_URL + appEntity.getId
-                crwlingJob.append(url)
-        else :
+        if type(appList) != list:
             msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
             print(msg)
             exit()
+            
+        for dto in appList :
+            url = self.__APP_ID_URL + dto.getAppEntity.getId
+            resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
+            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir, dto=dto))
+            
         return crwlingJob
     
     
-    def requestWorkListFromDBTest( self, marketNum:int, ids:List[str] ) :
-        crwlingJob:List[str] = []
-        for id in ids:
-            url = self.__PACKAGE_URL + id
-            crwlingJob.append(url)
-        return crwlingJob
-    
-    def threadProductor(self, requestUrl : str, processStack:List[Dto], errorStack:List[Dto]):
-        repeatCount = 0
-        try:
-            self.requestUrl(requestUrl, processStack, errorStack )
-        except requests.exceptions.ReadTimeout: 
-            repeatCount+= 1 
-            if repeatCount < self.__MAX_RETRY_COUNT :
-                self.requestUrl(requestUrl, processStack, errorStack)
-            else : 
-                errorStack.append(ErrorDto.build(ErrorCode.REQUEST_READ_TIMEOUT , requestUrl))
-        except requests.exceptions.ConnectionError: 
-            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , requestUrl))
-        except requests.exceptions.ChunkedEncodingError:
-            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
-        except AttributeError:
-            errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , requestUrl))
-        except UrllibError.URLError :
-            errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , requestUrl))
-        except TooManyRequest : 
-            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
-
-    def requestUrl(self, requestUrl : str,  processStack:List[Dto], errorStack:List[Dto]) :
-        header = {"Accept-Language" : "ko-KR"}
-        res:requests.Response = Curl.request(method=CurlMethod.GET, url=requestUrl, headers=header, data=None)
-        data = RequestDto(requestUrl, res)
+    def threadProducer(self, threadJobDto : ThreadJobDto, processStack:List[Dto], errorStack:List[Dto]):
+        requestUrl = threadJobDto.getUrl
+        data = self.requestUrl(requestUrl, errorStack )
+        res = data.getResponse
         if res.status_code == 404 :
-            appId = data.getUrl().split("?id=")[1]
+            appId = data.getUrl.split("?id=")[1]
             processStack.append(DomParser.mappingInactiveDto(GoogleScrapService.__MARKET_NUM, appId))
         elif res.status_code == 429:
-            raise TooManyRequest(requestUrl)
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , requestUrl))
         else :
             try : 
-                appWithDeveloperEntityList = DomParser.parseGoogleApp(data.getResponse())
-                if type(appWithDeveloperEntityList) == AppWithDeveloperWithResourceDto :
-                    processStack.append(appWithDeveloperEntityList)
+                FileManager.makeDirs(threadJobDto.getResourceDir)
+                appDto = DomParser.parseGoogleApp(res)
+                result = DomParser.getAppWithDeveloperWithResourceDto(
+                    marketNum=self.__MARKET_NUM , 
+                    appDto = appDto, 
+                    resourceDirectory= threadJobDto.getResourceDir)
+                
+                if type(result) == AppWithDeveloperWithResourceDto :
+                    processStack.append(result)
                 else :
                     msg = "getResponse Fail : {}".format(requestUrl)
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , msg))
@@ -108,6 +80,29 @@ class GoogleScrapService(Service) :
             except TypeError as e  :
                 msg = "getResponse Fail : {} ".format(requestUrl) + e 
                 errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , msg))
+
+    def requestUrl(self, url : str,  errorStack:List[ErrorDto]):
+        header = {"Accept-Language" : "ko-KR"}
+        try :
+            res:requests.Response = Curl.request(
+                method=CurlMethod.GET, 
+                url=url, 
+                headers=header, 
+                data=None ,
+                timeout=10)
+            return RequestDto(url, res)
+        except requests.exceptions.ConnectionError: 
+            errorStack.append(ErrorDto.build(ErrorCode.REQUEST_CONNECTION_ERROR , url))
+        except UrllibError.URLError :
+            errorStack.append(ErrorDto.build(ErrorCode.URL_OPEN_ERROR , url))
+        except TooManyRequest:
+            errorStack.append(ErrorDto.build(ErrorCode.TOO_MANY_REQUEST , url))
+        # except requests.exceptions.ChunkedEncodingError:
+        #     errorStack.append(ErrorDto.build(ErrorCode.CHUNKED_ENCODING_ERROR , url))
+        # except AttributeError as e : 
+        #     errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , e))
+        # except TypeError as e : 
+        #     errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , e))
                 
     def consumerProcess(self, q: Queue):
         envManager = EnvManager.instance()
@@ -117,9 +112,8 @@ class GoogleScrapService(Service) :
         while ( True ):
             try :
                 resultData = q.get()
-                print(resultData)
             except ValueError as e :
-                print("ERROR : {} {}".format(e, resultData))
+                logManager.error("ERROR : {} {}".format(e, resultData))
                 continue
             if( resultData == "None"):
                 break

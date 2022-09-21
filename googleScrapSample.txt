@@ -1,0 +1,29 @@
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "탕탕특공대",
+    "url": "https://play.google.com/store/apps/details/%ED%83%95%ED%83%95%ED%8A%B9%EA%B3%B5%EB%8C%80?id=com.dxx.firenow&hl=ko&gl=KR",
+    "description": "괴물들로부터의 생존자, 재미로의 생존자",
+    "operatingSystem": "ANDROID",
+    "applicationCategory": "GAME_ADVENTURE",
+    "image": "https://play-lh.googleusercontent.com/jUJoxIWUU_MJ1ntLVOu_-YwtXRSzP2K87FYeFBpGTEMWAzdt20KjcF4UTsd1NGPeyg",
+    "contentRating": "전체이용가",
+    "author": {
+        "@type": "Person",
+        "name": "Habby",
+        "url": "https://www.habby.com"
+    },
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.653781",
+        "ratingCount": "193004"
+    },
+    "offers": [
+        {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "KRW",
+            "availability": "https://schema.org/InStock"
+        }
+    ]
+}

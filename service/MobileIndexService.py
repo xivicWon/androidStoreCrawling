@@ -1,4 +1,6 @@
+from cProfile import label
 import json
+from xmlrpc.client import Boolean
 import requests
 from typing import Callable, List
 from dto.mobileIndex.MIMarketInfoDto import MIMarketInfoDto
@@ -84,10 +86,10 @@ class MobileIndexService (Service):
                 mIMarketInfoDto.setAppId("id" + app["market_appid"])
                 appEntities.append(mIMarketInfoDto.toAppleAppEntity())
                 appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
-            elif self.isGoogleStoreApp(app["market_name"]):
-                mIMarketInfoDto = MIMarketInfoDto()
-                mIMarketInfoDto.setPackageName(app["package_name"])
-                appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+            # elif self.isGoogleStoreApp(app["market_name"]):
+                # mIMarketInfoDto = MIMarketInfoDto()
+                # mIMarketInfoDto.setPackageName(app["package_name"])
+                # appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
                 
     
     def isOneStoreApp(self, appStoreName:str ):
@@ -103,7 +105,7 @@ class MobileIndexService (Service):
     def saveGlobalRank (self, appEntities:List[AppEntity]):
         AppIds:List[str] = []
         saveAppEntities:List[AppEntity] = []
-        condition : Callable[[str], bool]  = lambda id : id == currentId 
+        condition : Callable[[str], bool]  = lambda id : id == currentId  
         for appEntity in appEntities :
             currentId = appEntity.getId
             filtered = next(filter( condition, AppIds ), None)

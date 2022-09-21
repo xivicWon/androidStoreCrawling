@@ -26,7 +26,7 @@ def main() :
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,
         maxThreadCount=MAX_THREAD_COUNT ,
-        supplier=appScrapService.threadProductor
+        supplier=appScrapService.threadProducer
     )
     
     logManager.info("Market : Apple / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))

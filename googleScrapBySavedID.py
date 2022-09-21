@@ -1,13 +1,13 @@
+# -*- coding: utf-8 -*-
 import sys, rootpath
-
 sys.path.append(rootpath.detect())
 from repository.AppStoreRepository import AppStoreRepository
-from service.AppleScrapService import AppleScrapService 
+from service.GoogleScrapService import GoogleScrapService 
 from module.OpenDB_v3 import OpenDB
 from module.EnvManager import EnvManager 
-from module.LogManager import LogManager
 from module.TimeChecker import TimeChecker
 from module.MultiProcessThread import MultiProcessThread
+from module.LogManager import LogManager
 
 def main() :
     envManager = EnvManager.instance()
@@ -19,25 +19,28 @@ def main() :
         password=envManager.DB_PASSWORD , 
         database=envManager.DB_DATABASE,
         logModule=logManager)
-    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager)
-    appScrapService:AppleScrapService = AppleScrapService(repository=appStoreRepository)      
+    appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager )
+    appScrapService:GoogleScrapService = GoogleScrapService(repository=appStoreRepository)        
     
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,
         maxThreadCount=MAX_THREAD_COUNT ,
-        supplier=appScrapService.threadProductor
+        supplier=appScrapService.threadProducer
     )
     
     offset:int = 0
     limit:int = 10000
-    logManager.info("Market : Apple / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    multiProcess.addThreadJob(appScrapService.getNoNameAppList(offset, limit))
+    logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
+    logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
+    multiProcess.addThreadJob(appScrapService.getThreadJobOfNoNameApps(MARKET_NUM , offset=offset, limit=limit))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
-
+    
 if __name__  == '__main__' :
     PROCESS_COUNT = 5
     MAX_THREAD_COUNT = 100
+    MARKET_NUM = 1 
+    
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
     main()

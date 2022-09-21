@@ -110,7 +110,6 @@ class AppEntity(Entity):
         self.__min_use_age = obj["min_use_age"] 
         self.__mapping_code = obj["mapping_code"] if 'mapping_code' in obj else ""
         self.__is_active = obj["is_active"]  if 'is_active' in obj else ""
-        # self.__last_update = obj["last_update"].strftime("%Y%m%d") if 'last_update' in obj and type(obj["last_update"]) == datetime.date else ""
         self.setLastUpdate(obj["last_update"] if 'last_update' in obj else None)
         self.__rating = obj["rating"] if 'rating' in obj else 0  
         return self

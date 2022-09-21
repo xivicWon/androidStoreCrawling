@@ -11,8 +11,10 @@ class RequestDto (Dto):
         self.url = url
         self.response = response    
     
+    @property
     def getUrl(self):
         return self.url 
     
+    @property
     def getResponse(self):
         return self.response 

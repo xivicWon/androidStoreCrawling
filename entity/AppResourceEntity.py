@@ -7,9 +7,9 @@ class AppResourceEntity(Entity):
     __path : str 
     
     def ofDict(self, obj:dict):
-        self.__app_num = obj["app_num"]
-        self.__resource_type = obj["resource_type"]
-        self.__path = obj["path"]
+        self.__app_num = obj["app_num"] if "app_num" in obj else None
+        self.__resource_type = obj["resource_type"] if "resource_type" in obj else None
+        self.__path = obj["path"] if "path" in obj else None
 
     @property
     def getAppNum(self):

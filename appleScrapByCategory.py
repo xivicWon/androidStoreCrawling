@@ -25,13 +25,14 @@ def main() :
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,
         maxThreadCount=MAX_THREAD_COUNT ,
-        supplier=appScrapService.threadProductor
+        supplier=appScrapService.threadProducer
     )
     
     logManager.info("Market : Apple / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    multiProcess.addThreadJob(appScrapService.requestWorkListFromDB())
+    multiProcess.addThreadJob(appScrapService.getThreadJobOfAppleCategory())
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
+
 
 if __name__  == '__main__' :
     PROCESS_COUNT = 5

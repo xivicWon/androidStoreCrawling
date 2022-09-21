@@ -25,40 +25,28 @@ class DomParser :
             os.makedirs(directory)
     
     @staticmethod
-    def parseAppleAppDetail(response:requests.Response) : 
-        marketNum = DomParser.__APPLE_MARKET_NUM 
-        resourceDirectory = DomParser.__APPLE_RESOURCE_DIR
-        DomParser.makeResourceDir(resourceDirectory)
+    def parseAppleAppDetail(response:requests.Response)->AppDto: 
         try : 
             soup = bs(response.text, "html.parser")
-            id = soup.select_one('meta[name="apple:content_id"]').get('content')
-            appIconSrcSet = soup.select_one('source').get("srcset", default="")
-            appIconSrc = appIconSrcSet.split(",")[0].split(" ")[0]
             apiData = soup.find( name='script', type="application/ld+json").text
-            try : 
-                data = json.loads(apiData)
-                data["id"] = id
-                data["img"] = appIconSrc
-                if( type(data) == dict ):
-                    return DomParser.getAppWithDeveloperWithResourceDto(
-                        appDto=AppDto.ofAppleAppDetail(data),
-                        marketNum=marketNum, 
-                        resourceDirectory=resourceDirectory)
-                    
-            except Exception as e : 
-                raise Exception(e)
+            data = json.loads(apiData)
+            
+            data["id"] = soup.select_one('meta[name="apple:content_id"]').get('content')
+            appIconSrcSet = soup.select_one('source').get("srcset", default="")
+            
+            data["img"]  = appIconSrcSet.split(",")[0].split(" ")[0]
+            return AppDto.ofAppleAppDetail(data)
         except AttributeError as e : 
             msg = "domParser] data : {} ]".format(e)
             raise AttributeError(msg)
         except TypeError as e : 
             msg = "domParser] data : {} ]".format( e)
             raise TypeError(msg)
+        except Exception as e : 
+            raise Exception(e)
 
     @staticmethod
     def parseAppleCategory( response:requests.Response )->List[AppWithDeveloperWithResourceDto]:
-        marketNum = DomParser.__APPLE_MARKET_NUM  
-        resourceDirectory = DomParser.__APPLE_RESOURCE_DIR
-        DomParser.makeResourceDir(resourceDirectory)
         try : 
             soup = bs(response.text, "html.parser")
             scripts:List[Tag] = soup.findAll('script', type="fastboot/shoebox", id=lambda x : x and x.startswith('shoebox-kr-limit-100-genreId-'))
@@ -69,10 +57,15 @@ class DomParser :
                     parsingResult = []
                     for data in data["chartsList"]["data"] :
                         parsingResult.append(
-                            DomParser.getAppWithDeveloperWithResourceDto(
-                                appDto=AppDto.ofAppleCategory(data),
-                                marketNum=marketNum, 
-                                resourceDirectory=resourceDirectory)
+                            DomParser.mappingActiveAppOnlyDto(
+                                marketNum=DomParser.__APPLE_MARKET_NUM, 
+                                appDto=AppDto.ofAppleCategory(data)
+                            )
+                            
+                            # DomParser.getAppWithDeveloperWithResourceDto(
+                            #     appDto=AppDto.ofAppleCategory(data),
+                            #     marketNum=marketNum, 
+                            #     resourceDirectory=resourceDirectory)
                             )
                     return parsingResult
             except Exception as e : 
@@ -93,9 +86,9 @@ class DomParser :
     
     @staticmethod
     def parseGoogleApp( response:requests.Response )->List[AppWithDeveloperWithResourceDto]:
-        marketNum = DomParser.__GOOGLE_MARKET_NUM  
-        resourceDirectory = DomParser.__GOOGLE_RESOURCE_DIR
-        DomParser.makeResourceDir(resourceDirectory)
+        # marketNum = DomParser.__GOOGLE_MARKET_NUM
+        # resourceDirectory = DomParser.__GOOGLE_RESOURCE_DIR
+        # DomParser.makeResourceDir(resourceDirectory)
         try : 
             soup = bs(response.text, "html.parser")
             data = json.loads(soup.find('script', type='application/ld+json').text)
@@ -119,7 +112,11 @@ class DomParser :
             msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
             raise TypeError(msg)
         
-        return DomParser.getAppWithDeveloperWithResourceDto(marketNum=marketNum , appDto = AppDto.ofGoogle(data), resourceDirectory= resourceDirectory)
+        return AppDto.ofGoogle(data)
+        # return DomParser.getAppWithDeveloperWithResourceDto(
+        #     marketNum=marketNum , 
+        #     appDto = AppDto.ofGoogle(data), 
+        #     resourceDirectory= resourceDirectory)
         
         
         
@@ -144,7 +141,8 @@ class DomParser :
             imagePath = AppDto.downloadImg(
                 downloadLink=appDto.appImage, 
                 toDirectory=resourceDirectory, 
-                fileName=appEntity.getId
+                fileName=appEntity.getId,
+                force=False
             )
         except ValueError as e : 
             raise ValueError(AppDto.toString())
@@ -159,6 +157,25 @@ class DomParser :
             .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
             .setAppResourceEntity(appResourceEntity)
           
+            
+    @staticmethod
+    def mappingActiveAppOnlyDto( marketNum:int, appDto:AppDto, ):
+        appEntity = AppEntity()\
+            .setAppName(appDto.getAppName())\
+            .setId(appDto.getAppId())\
+            .setDeveloperNum(0)\
+            .setMarketNum(marketNum)\
+            .setIsActive("Y")\
+            .setRating(appDto.getAppRating())\
+            .setLastUpdateCurrent()
+            
+        appMarketDeveloperEntity = None
+        appResourceEntity = None
+        
+        return AppWithDeveloperWithResourceDto()\
+            .setAppEntity(appEntity)\
+            .setAppMarketDeveloperEntity(appMarketDeveloperEntity)\
+            .setAppResourceEntity(appResourceEntity)
             
     @staticmethod
     def mappingInactiveDto( marketNum:int, appId:str ):

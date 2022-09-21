@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, rootpath
+from dto.ThreadJobDto import ThreadJobDto
 sys.path.append(rootpath.detect())
 from repository.AppStoreRepository import AppStoreRepository
 from service.GoogleScrapService import GoogleScrapService 
@@ -25,16 +26,14 @@ def main() :
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,
         maxThreadCount=MAX_THREAD_COUNT ,
-        supplier=appScrapService.threadProductor
+        supplier=appScrapService.threadProducer
     )
     
     offset:int = 0
-    limit:int = 10000
-    logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
-    logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
-    multiProcess.addThreadJob(appScrapService.requestWorkListFromDB(MARKET_NUM , offset=offset, limit=limit))
-    # samples = ["com.kucoin.wallet"]
-    # multiProcess.addThreadJob(appScrapService.requestWorkListFromDBTest(MARKET_NUM ,samples))
+    limit:int = 0
+    logManager.info("Market : Google(custom) / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
+    samples = ["com.kucoin.wallet"]
+    multiProcess.addThreadJob(list(map( lambda s: ThreadJobDto(s) , samples)))
     multiProcess.setConsumer(consumer=appScrapService.consumerProcess) 
     multiProcess.run()
     

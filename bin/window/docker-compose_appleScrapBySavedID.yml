@@ -2,14 +2,14 @@
 
 version: '3.9'
 services:
-  apple_no_name_update:
+  appleScrapBySavedID:
     env_file:
       - app.env
-    container_name: apple_no_name_update
+    container_name: appleScrapBySavedID
     image: appstore_scraping:latest
     environment:
       - TZ=Asia/Seoul
-    command: python starter.py apple_no_name_update
+    command: python starter.py appleScrapBySavedID
     volumes:
       - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
       - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/images"

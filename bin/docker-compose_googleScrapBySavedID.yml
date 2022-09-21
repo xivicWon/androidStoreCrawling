@@ -2,14 +2,14 @@
 
 version: '3.9'
 services:
-  apple_no_name_update:
+  googleScrapBySavedID:
     env_file:
       - app.env
-    container_name: apple_no_name_update
+    container_name: googleScrapBySavedID
     image: appstore_scraping:latest
     environment:
       - TZ=Asia/Seoul
-    command: python starter.py apple_no_name_update
+    command: python starter.py googleScrapBySavedID
     volumes:
       - /home/appstore/appstore_scraping:/app
       - /data/appstore/images:/images

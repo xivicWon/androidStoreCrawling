@@ -1,5 +1,7 @@
 import sys, rootpath
 
+from dto.Dto import Dto
+
 sys.path.append(rootpath.detect())
 from typing import  Callable, List
 from threading import Thread
@@ -7,7 +9,7 @@ from multiprocessing import Process, Queue, current_process
 class MultiProcessThread :
     __processCount: int 
     __maxThreadCount: int 
-    __jobList : List
+    __jobList : List[Dto]
     __hasConsumer : bool
     __supplier : Callable
     __consumer : Callable
@@ -20,7 +22,7 @@ class MultiProcessThread :
         pass 
     
     
-    def addThreadJob (self, jobList:List):
+    def addThreadJob (self, jobList:List[Dto]):
         self.__jobList = jobList
         return self
     
@@ -74,7 +76,7 @@ class MultiProcessThread :
         self.__hasConsumer = True
         self.__consumer = consumer
     
-    def workToProcess(self, threadCount : int , q : Queue, callBack : Callable, jobList: list) :
+    def workToProcess(self, threadCount : int , q : Queue, callBack : Callable, jobList: List[Dto]) :
         processName = current_process().name
         threadlist: List[Thread] = []
         allThreadList: List[Thread] = []
