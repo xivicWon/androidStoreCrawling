@@ -5,12 +5,14 @@ from typing import List
 from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
 
+
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.htmlDom.Tag_A import Tag_A
 from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
+from module.FileManager import FileManager
 
 class DomParser :
     __APPLE_MARKET_NUM:int = 2 
@@ -144,6 +146,7 @@ class DomParser :
                 fileName=appEntity.getId,
                 force=False
             )
+            FileManager.setFileOwnWithMod(imagePath)
         except ValueError as e : 
             raise ValueError(AppDto.toString())
             

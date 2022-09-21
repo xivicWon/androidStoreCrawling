@@ -7,6 +7,7 @@
     - Create New Container => appleScrapBySavedID.py
     - apple category 처리시 App 정보만 저장(developer x, icon x ) 
     - Resource 파일저장경로 개선 (날짜[Ym] + random( 1~20))
+    - Images 생성시 권한 및 사용자(daemon) 변경 
 ## v1.2.1 
     - update DockerFile, docker-compose 
         - 역할 분리( docker, docker-compose )

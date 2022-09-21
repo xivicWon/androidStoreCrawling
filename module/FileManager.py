@@ -31,13 +31,14 @@ class FileManager(SingletonInstance):
     @staticmethod
     def setFileOwnWithMod(fileDir:str) :
         daemonUid = 2 
-        os.chown( fileDir , daemonUid, daemonUid)
-        os.chmod(path=fileDir, mode=0o777)
+        os.chown(fileDir , daemonUid, daemonUid)
+        os.chmod(path=fileDir, mode=0o755)
         
     @staticmethod
     def makeDirs(directory :str) :
         if not os.path.exists(directory):
             os.makedirs(directory)
+            FileManager.setFileOwnWithMod(directory)
     
         
     # @staticmethod
