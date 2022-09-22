@@ -55,6 +55,25 @@ class AppStoreRepository(Repository) :
             self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
             return None
         
+    def findNoMappingAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+        query = """
+            SELECT  *
+            FROM    app AS A
+            WHERE   ( A.mapping_code = '' or  A.mapping_code is null )
+                AND A.is_active = 'Y'
+                AND market_num = %s
+            LIMIT   %s, %s
+        """
+        field = (market_num, offset , limit)
+        result = self.dbManager.select(query ,field)
+        if type(result) == list : 
+            return list(map( lambda t : AppEntity().ofDict(t), result )) 
+        else :
+            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
+            return None
+    
+    
+        
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         query = """
             SELECT  *

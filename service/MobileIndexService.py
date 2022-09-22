@@ -1,8 +1,12 @@
 from cProfile import label
 import json
-from xmlrpc.client import Boolean
-import requests
+from multiprocessing import Queue
 from typing import Callable, List
+
+from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
+from dto.Dto import Dto
+from dto.ErrorDto import ErrorDto
+from dto.ThreadJobDto import ThreadJobDto
 from dto.mobileIndex.MIMarketInfoDto import MIMarketInfoDto
 from dto.mobileIndex.MIRequestDto import MIRequestDto
 from entity.AppEntity import AppEntity
@@ -10,7 +14,8 @@ from repository.AppStoreRepository import AppStoreRepository
 from service.Service import Service
 from module.Curl import Curl, CurlMethod
 from module.LogModule import LogModule
-
+from module.EnvManager import EnvManager
+from module.LogManager import LogManager
 class MobileIndexService (Service): 
     __DOMAIN:str =  "https://www.mobileindex.com"
     __REFERER:str = "https://www.mobileindex.com/mi-chart/daily-rank"
@@ -86,11 +91,6 @@ class MobileIndexService (Service):
                 mIMarketInfoDto.setAppId("id" + app["market_appid"])
                 appEntities.append(mIMarketInfoDto.toAppleAppEntity())
                 appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
-            # elif self.isGoogleStoreApp(app["market_name"]):
-                # mIMarketInfoDto = MIMarketInfoDto()
-                # mIMarketInfoDto.setPackageName(app["package_name"])
-                # appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
-                
     
     def isOneStoreApp(self, appStoreName:str ):
         return appStoreName == "one"
@@ -100,7 +100,6 @@ class MobileIndexService (Service):
     
     def isGoogleStoreApp(self, appStoreName:str ):
         return appStoreName == "google"
-    
     
     def saveGlobalRank (self, appEntities:List[AppEntity]):
         AppIds:List[str] = []
@@ -115,3 +114,43 @@ class MobileIndexService (Service):
             AppIds.append(currentId)
         self.__log.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(appEntities)))
         self.__appStoreRepository.saveAppMappingUseBulk(saveAppEntities)
+        
+    
+    def threadProducer(self, threadJobDto : ThreadJobDto, processStack:List[Dto], errorStack:List[Dto]):
+        package = threadJobDto.getUrl
+        mIMarketInfoDto = self.__getGoogleMarket(package=package)     
+        processStack.append(mIMarketInfoDto.toAppleAppEntity())
+        processStack.append(mIMarketInfoDto.toGoogleAppEntity())
+        
+        
+    def consumerProcess(self, q: Queue):
+        envManager = EnvManager.instance()
+        logManager = LogManager.instance()
+        logManager.init(envManager)
+        responseResults:List[AppWithDeveloperWithResourceDto] = []
+        while ( True ):
+            try :
+                resultData = q.get()
+            except ValueError as e :
+                logManager.error("ERROR : {} {}".format(e, resultData))
+                continue
+            if( resultData == "None"):
+                break
+            elif type(resultData) == list :
+                for value in resultData:
+                    if type(value) == ErrorDto:
+                        logManager.byErrorDto(value)
+                    else :        
+                        responseResults.append(value)
+            else : 
+                logManager.error("consumerProcess > check undefined data : {}".format(resultData))
+                
+        if len(responseResults) > 0 :
+            self.updateResponseToRepository(responseResults)
+    
+    
+    def updateResponseToRepository (self, data:List[AppEntity]):
+        for d in data :
+            print("{} -> {}".format(d.getId, d.getMappingCode))
+            
+        self.__appStoreRepository.saveAppMappingUseBulk(bulkResources=data)

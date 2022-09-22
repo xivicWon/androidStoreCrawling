@@ -19,6 +19,9 @@ class Repository :
     def findNoNameAppLimitedTo(self , market_num:int,  offset :int , limit :int ) -> Optional[List[AppWithDeveloperWithResourceDto]]:  
         pass
     
+    def findNoMappingAppLimitedTo(self , market_num:int,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+        pass
+    
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         pass
         

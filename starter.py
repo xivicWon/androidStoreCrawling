@@ -15,7 +15,8 @@ if __name__ == "__main__":
         "appleScrapByCategory" : "appleScrapByCategory.py",
         "googleScrapBySavedID" : "googleScrapBySavedID.py",
         "mobileIndexRankApi" : "mobileIndexRankApi.py",
-        "appleScrapBySavedID" : "appleScrapBySavedID.py"
+        "appleScrapBySavedID" : "appleScrapBySavedID.py",
+        "mobileIndexAppSearch" : "mobileIndexAppSearch.py"
     }
     try : 
         action = sys.argv[1]

@@ -4,7 +4,7 @@ from dto.Dto import Dto
 
 class ThreadJobDto (Dto): 
     __url : str
-    __resourceDir:str
+    __resourceDir: str
     __dto : AppWithDeveloperWithResourceDto
     
     def __init__(self, url , resourceDir, dto) -> None:

@@ -25,9 +25,11 @@ class MIMarketInfoDto(Dto) :
     def setAppId (self, apple_id):
         self.__apple_id = apple_id 
     
+    
     def ofDict(self , obj:dict ) :
-        self.__package_name = obj["package_name"]
-        self.__apple_id = obj["apple_id"]
+        self.__package_name = obj["package_name"] if "package_name" in obj else ""
+        self.__apple_id = "id" + obj["apple_id"]  if "apple_id" in obj else ""
+        self.generateMappingCode()
         return self
         
     def generateMappingCode(self):

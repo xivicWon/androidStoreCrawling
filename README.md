@@ -1,4 +1,7 @@
 # 앱 스토어 스크래핑
+## v1.3.0
+    - mobileIndex 의 앱개별 조회API 추가. 
+        - mapping정보가 없는 데이터만 조회해서 IOS App 정보 및 mapping_code 를 등록.
 ## v1.2.2
     - mapping_code 초기화 문제 수정(mobileIndex 에서 초기화해주는 코드 확인 및 수정)
     - 이미지 조회 및 데이터 업데이트 파일 ( checkIconExist.py)
