@@ -5,7 +5,6 @@ from typing import List
 from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
 
-
 from dto.AppDto import AppDto
 from dto.AppWithDeveloperWithResourceDto import AppWithDeveloperWithResourceDto
 from dto.htmlDom.Tag_A import Tag_A
@@ -13,12 +12,10 @@ from entity.AppEntity import AppEntity
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from module.FileManager import FileManager
-
+from module.ImageConverter import ImageConverter
 class DomParser :
     __APPLE_MARKET_NUM:int = 2 
-    __APPLE_RESOURCE_DIR:str = "/images/apple"
     __GOOGLE_MARKET_NUM:int = 1
-    __GOOGLE_RESOURCE_DIR:str = "/images/google"
     __UNDEFINED_APP_NAME: str = "undefined-app"
     
     @staticmethod
@@ -63,12 +60,7 @@ class DomParser :
                                 marketNum=DomParser.__APPLE_MARKET_NUM, 
                                 appDto=AppDto.ofAppleCategory(data)
                             )
-                            
-                            # DomParser.getAppWithDeveloperWithResourceDto(
-                            #     appDto=AppDto.ofAppleCategory(data),
-                            #     marketNum=marketNum, 
-                            #     resourceDirectory=resourceDirectory)
-                            )
+                        )
                     return parsingResult
             except Exception as e : 
                 raise Exception(e)
@@ -88,9 +80,6 @@ class DomParser :
     
     @staticmethod
     def parseGoogleApp( response:requests.Response )->List[AppWithDeveloperWithResourceDto]:
-        # marketNum = DomParser.__GOOGLE_MARKET_NUM
-        # resourceDirectory = DomParser.__GOOGLE_RESOURCE_DIR
-        # DomParser.makeResourceDir(resourceDirectory)
         try : 
             soup = bs(response.text, "html.parser")
             data = json.loads(soup.find('script', type='application/ld+json').text)
@@ -115,11 +104,6 @@ class DomParser :
             raise TypeError(msg)
         
         return AppDto.ofGoogle(data)
-        # return DomParser.getAppWithDeveloperWithResourceDto(
-        #     marketNum=marketNum , 
-        #     appDto = AppDto.ofGoogle(data), 
-        #     resourceDirectory= resourceDirectory)
-        
         
         
     @staticmethod
@@ -146,6 +130,7 @@ class DomParser :
                 fileName=appEntity.getId,
                 force=False
             )
+            ImageConverter.convert(imagePath)
             FileManager.setFileOwnWithMod(imagePath)
         except ValueError as e : 
             raise ValueError(AppDto.toString())

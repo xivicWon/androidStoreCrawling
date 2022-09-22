@@ -8,6 +8,8 @@
     - apple category 처리시 App 정보만 저장(developer x, icon x ) 
     - Resource 파일저장경로 개선 (날짜[Ym] + random( 1~20))
     - Images 생성시 권한 및 사용자(daemon) 변경 
+    - Images webp -> png 로 변경 추가.
+    - convertImagesInDirectory.py 추가 [특정디렉토리의 이미지를 png 로 변경]
 ## v1.2.1 
     - update DockerFile, docker-compose 
         - 역할 분리( docker, docker-compose )

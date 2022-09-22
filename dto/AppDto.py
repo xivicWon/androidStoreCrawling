@@ -1,6 +1,5 @@
 from urllib import parse, request
 import os
-import uuid
 from dto.Dto import Dto
 
 class AppDto(Dto) : 
