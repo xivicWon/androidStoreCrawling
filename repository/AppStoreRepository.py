@@ -40,8 +40,8 @@ class AppStoreRepository(Repository) :
             FROM    app AS A
                 LEFT JOIN apps_resource AS R    
                     ON A.num = R.app_num 
-            WHERE   ((app_name IS NULL or app_name = '') OR R.num is null)
-                AND app_name <> 'undefined-app'                
+            WHERE   (app_name IS NULL or app_name = '') 
+                AND A.is_active = 'Y'
                 AND market_num = %s
             LIMIT   %s, %s
         """
