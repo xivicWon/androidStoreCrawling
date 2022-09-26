@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from re import S
 import sys, rootpath
 sys.path.append(rootpath.detect())
 from functools import reduce
@@ -30,7 +31,8 @@ class OpenDB :
                 port=3306, 
                 use_unicode=True,
                 cursorclass=pymysql.cursors.DictCursor,
-                charset="utf8mb4"
+                charset="utf8mb4",
+                autocommit=True
             )
             conn.set_charset("utf8mb4")
         except pymysql.err.OperationalError as e : 
@@ -44,22 +46,18 @@ class OpenDB :
         return ",".join(reduce( lambda acc, key : acc+[localValues[key]] , localValues.keys() , []))
     
     
-    def _query(self, query:str):
+    def truncate(self , table) :
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
-                cur.execute(query)
-            
-    
-    def truncate(self , table) :
-        self._query("TRUNCATE " + table) 
+                cur.execute("TRUNCATE " + table)
                  
     def selectOne(self, query:str, fields:tuple) -> list :
         conn = self._connect()
         with conn:
             with conn.cursor() as cur:
                 try : 
-                    cur.execute(query, fields)
+                    cur.execute(query=query, args=fields)
                     return cur.fetchone()
                 except pymysql.err.ProgrammingError as e :
                     self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
@@ -75,7 +73,7 @@ class OpenDB :
         with conn:
             with conn.cursor() as cur:
                 try : 
-                    cur.execute(query, fields)
+                    cur.execute(query=query, args=fields)
                     return cur.fetchall()
                 except pymysql.err.ProgrammingError as e :
                     self.__log.error("{} ProgrammingError : {}".format(self.select.__qualname__ , e))
@@ -94,16 +92,8 @@ class OpenDB :
                     cur.execute(query=query, args=fields)
                     return cur.lastrowid
                 except Exception as e : 
-                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} Exception : {}".format(self.insert.__qualname__ , e))
         
-    def update(self, query:str, fields:tuple) :
-        conn = self._connect()
-        with conn:
-            with conn.cursor() as cur:
-                try : 
-                    cur.execute(query, fields)
-                except Exception as e:
-                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
         
     def insertBulk(self, query:str, fields:List[tuple]) :
         conn = self._connect()
@@ -112,5 +102,14 @@ class OpenDB :
                 try :
                     cur.executemany(query, fields)
                 except Exception as e : 
-                    self.__log.error("{} Exception : {}".format(self.select.__qualname__ , e))
+                    self.__log.error("{} Exception : {}".format(self.insertBulk.__qualname__ , e))
                      
+    def update(self, query:str, fields:tuple) :
+        conn = self._connect()
+        with conn:
+            with conn.cursor() as cur:
+                try : 
+                    cur.execute(query=query, args=fields)
+                except Exception as e:
+                    self.__log.error("{} Exception : {}".format(self.update.__qualname__ , e))
+                 

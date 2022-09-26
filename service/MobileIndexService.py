@@ -22,10 +22,10 @@ class MobileIndexService (Service):
     __CONTENT_TYPE : str = "application/x-www-form-urlencoded"
     __global_rank_v2:str =  "/api/chart/global_rank_v2"
     __market_info:str =  "/api/app/market_info"
-    __appStoreRepository :AppStoreRepository 
+    __repository :AppStoreRepository 
     __log: LogModule
     def __init__(self, appStoreRepository, logModule:LogModule ):
-        self.__appStoreRepository = appStoreRepository
+        self.__repository = appStoreRepository
         self.__log = logModule 
         pass
 
@@ -46,17 +46,18 @@ class MobileIndexService (Service):
         else :
             raise Exception("Web Response Status Code : {}".format(response.status_code))    
         
-    def __getGoogleMarket(self, package) -> MIMarketInfoDto:
-        data = self.__getJsonToMobileIndex({
-            "packageName" : package
-        })
-        return MIMarketInfoDto().ofDict(data)
-    
-    def marketInfoSave(self, package) : 
-        mIMarketInfoDto = self.__getGoogleMarket(package=package)     
-        self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toAppleAppEntity())
-        self.__appStoreRepository.insertAppMappingCode(appEntity=mIMarketInfoDto.toGoogleAppEntity())
-    
+    def getThreadJobOfNoMappingApps( self, marketNum:int, offset:int , limit:int ) :
+        appList = self.__repository.findAppInAppScanningForMappingLimitedTo( offset , limit)
+        crwlingJob:List[str] = []
+        if type(appList) != list:
+            msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
+            print(msg)
+            exit()
+            
+        for dto in appList :
+            crwlingJob.append(ThreadJobDto(url = dto.getId, resourceDir = None, dto=dto ))
+        return crwlingJob
+
     def getGlobalRank(self, dto:MIRequestDto, appEntities:List[AppEntity]):
         headers = {
             'Content-Type':  self.__CONTENT_TYPE,
@@ -113,14 +114,27 @@ class MobileIndexService (Service):
             saveAppEntities.append(appEntity)
             AppIds.append(currentId)
         self.__log.info("insert/update Count : {} / {}".format(len(saveAppEntities), len(appEntities)))
-        self.__appStoreRepository.saveAppMappingUseBulk(saveAppEntities)
+        self.__repository.saveAppMappingUseBulk(saveAppEntities)
         
     
     def threadProducer(self, threadJobDto : ThreadJobDto, processStack:List[Dto], errorStack:List[Dto]):
         package = threadJobDto.getUrl
-        mIMarketInfoDto = self.__getGoogleMarket(package=package)     
-        processStack.append(mIMarketInfoDto.toAppleAppEntity())
-        processStack.append(mIMarketInfoDto.toGoogleAppEntity())
+        data = self.__getJsonToMobileIndex({
+            "packageName" : package
+        })
+        if "status" in data and data["status"] == False: 
+            data = {
+                "package_name" : package
+            }
+            mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
+            processStack.append(mIMarketInfoDto.toGoogleEmptyAppEntity())    
+        else : 
+            try :
+                mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
+                processStack.append(mIMarketInfoDto.toAppleAppEntity())
+                processStack.append(mIMarketInfoDto.toGoogleAppEntity())
+            except TypeError as e : 
+                print(package)
         
         
     def consumerProcess(self, q: Queue):
@@ -150,7 +164,6 @@ class MobileIndexService (Service):
     
     
     def updateResponseToRepository (self, data:List[AppEntity]):
-        for d in data :
-            print("{} -> {}".format(d.getId, d.getMappingCode))
-            
-        self.__appStoreRepository.saveAppMappingUseBulk(bulkResources=data)
+        self.__repository.saveAppMappingUseBulk(bulkResources=data)
+        ids = list(map(lambda t : t.getId , filter(lambda t : t.getMarketNum == 1 and t.getId != ''  , data)))
+        self.__repository.updateAppScannedForMapping(appids=ids)

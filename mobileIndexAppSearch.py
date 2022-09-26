@@ -1,3 +1,4 @@
+import random
 import sys, rootpath
 
 from service.GoogleScrapService import GoogleScrapService
@@ -23,7 +24,6 @@ def main() :
         logModule=logManager)
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager )
     mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository, logModule=logManager)
-    appScrapService:GoogleScrapService = GoogleScrapService(repository=appStoreRepository)        
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,
         maxThreadCount=MAX_THREAD_COUNT ,
@@ -31,10 +31,10 @@ def main() :
     )
     
     offset:int = 0
-    limit:int = 100
+    limit:int = random.randrange(1,500)
     logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
     logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
-    multiProcess.addThreadJob(appScrapService.getThreadJobOfNoMappingApps(MARKET_NUM , offset=offset, limit=limit))
+    multiProcess.addThreadJob(mobileIndexService.getThreadJobOfNoMappingApps(MARKET_NUM , offset=offset, limit=limit))
     multiProcess.setConsumer(consumer=mobileIndexService.consumerProcess) 
     multiProcess.run()
     

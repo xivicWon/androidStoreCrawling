@@ -50,19 +50,6 @@ class GoogleScrapService(Service) :
             
         return crwlingJob
     
-    def getThreadJobOfNoMappingApps( self, marketNum:int, offset:int , limit:int ) :
-        appList = self.__repository.findNoMappingAppLimitedTo(marketNum,offset , limit)
-        crwlingJob:List[str] = []
-        if type(appList) != list:
-            msg = "조회된 스크랩대상 데이터가 없음 {} ".format(marketNum)
-            print(msg)
-            exit()
-            
-        for dto in appList :
-            crwlingJob.append(ThreadJobDto(url = dto.getId, resourceDir = None, dto=dto ))
-        return crwlingJob
-    
-    
     def threadProducer(self, threadJobDto : ThreadJobDto, processStack:List[Dto], errorStack:List[Dto]):
         requestUrl = threadJobDto.getUrl
         data = self.requestUrl(requestUrl, errorStack )

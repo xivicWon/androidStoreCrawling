@@ -54,24 +54,6 @@ class AppStoreRepository(Repository) :
         else :
             self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
             return None
-        
-    def findNoMappingAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
-        query = """
-            SELECT  *
-            FROM    app AS A
-            WHERE   ( A.mapping_code = '' or  A.mapping_code is null )
-                AND A.is_active = 'Y'
-                AND market_num = %s
-            LIMIT   %s, %s
-        """
-        field = (market_num, offset , limit)
-        result = self.dbManager.select(query ,field)
-        if type(result) == list : 
-            return list(map( lambda t : AppEntity().ofDict(t), result )) 
-        else :
-            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
-            return None
-    
     
         
     def findAppLimitedTo(self , market_num,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
@@ -272,7 +254,6 @@ class AppStoreRepository(Repository) :
             return None
 
         
-        
     def updateApp( self, appEntity : AppEntity): 
         query = """
             UPDATE  app
@@ -397,9 +378,37 @@ class AppStoreRepository(Repository) :
             )
             
         return self.dbManager.insertBulk(query, fields)
-        
-        
     
+    def findAppInAppScanningForMappingLimitedTo(self, offset :int , limit :int ) -> Optional[List[AppEntity]]:  
+        query = """
+            SELECT  *
+            FROM    app AS A 
+                INNER JOIN app_scanning_for_mapping AS M 
+                    ON A.num = M.app_num 
+            WHERE   M.is_done = 'N'
+                AND A.is_active = 'Y'
+            LIMIT   %s , %s
+        """
+        field = ( offset , limit)
+        result = self.dbManager.select(query ,field)
+        if type(result) == list : 
+            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+        else :
+            self.__log.warning("{} return is None".format(self.findAppInAppScanningForMappingLimitedTo.__qualname__ ))
+            return None
+    
+    
+    def updateAppScannedForMapping(self, appids :List[str]  ):  
+        query = """
+            UPDATE  app_scanning_for_mapping AS M
+                INNER JOIN app AS A
+                    ON A.num = M.app_num 
+            SET     M.is_done = 'Y'
+            WHERE   M.is_done = 'N'
+                AND A.id in %s 
+        """
+        self.dbManager.update(query=query ,fields=[appids])
+        
     def findHasNoResourceApp(self,  offset :int , limit :int ) -> Optional[List[AppEntity]]:  
         query = """
             SELECT  *
@@ -415,5 +424,5 @@ class AppStoreRepository(Repository) :
         if type(result) == list : 
             return list(map( lambda t : AppEntity().ofDict(t) , result )) 
         else :
-            self.__log.warning("{} return is None".format(self.findNoNameAppLimitedToRecently.__qualname__ ))
+            self.__log.warning("{} return is None".format(self.findHasNoResourceApp.__qualname__ ))
             return None
