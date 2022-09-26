@@ -75,11 +75,11 @@ class GoogleScrapService(Service) :
                 else :
                     msg = "getResponse Fail : {}".format(requestUrl)
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , msg))
-            except AttributeError  as e  :
-                msg = "getResponse Fail : {}".format(requestUrl) + e 
+            except AttributeError as e  :
+                msg = "getResponse Fail : {} / {}".format(requestUrl, e ) 
                 errorStack.append(ErrorDto.build(ErrorCode.ATTRIBUTE_ERROR , msg))
             except TypeError as e  :
-                msg = "getResponse Fail : {} ".format(requestUrl) + e 
+                msg = "getResponse Fail : {} / {}".format(requestUrl, e)
                 errorStack.append(ErrorDto.build(ErrorCode.TYPE_ERROR , msg))
 
     def requestUrl(self, url : str,  errorStack:List[ErrorDto]):
