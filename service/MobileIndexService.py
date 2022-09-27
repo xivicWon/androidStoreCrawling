@@ -16,6 +16,7 @@ from module.Curl import Curl, CurlMethod
 from module.LogModule import LogModule
 from module.EnvManager import EnvManager
 from module.LogManager import LogManager
+import requests
 class MobileIndexService (Service): 
     __DOMAIN:str =  "https://www.mobileindex.com"
     __REFERER:str = "https://www.mobileindex.com/mi-chart/daily-rank"
@@ -35,17 +36,21 @@ class MobileIndexService (Service):
             'referer':  self.__REFERER
         }
         url = self.__DOMAIN + self.__market_info
-        response = Curl.request(
-            method=CurlMethod.POST,
-            headers=headers,
-            url=url,
-            data=data
-        )
-        if response.status_code == 200 :
-            return response.json()        
-        else :
-            raise Exception("Web Response Status Code : {}".format(response.status_code))    
-        
+        try :
+            response = Curl.request(
+                method=CurlMethod.POST,
+                headers=headers,
+                url=url,
+                data=data
+            )
+            if response.status_code == 200 :   
+                return json.loads(response.text.replace("\\" , ""))
+            else :
+                raise Exception("Web Response Status Code : {}".format(response.status_code))    
+        except requests.exceptions.JSONDecodeError as e : 
+            self.__log.error(data)
+            
+            
     def getThreadJobOfNoMappingApps( self, marketNum:int, offset:int , limit:int ) :
         appList = self.__repository.findAppInAppScanningForMappingLimitedTo( offset , limit)
         crwlingJob:List[str] = []
@@ -72,7 +77,7 @@ class MobileIndexService (Service):
         )
         
         if response.status_code == 200 :
-            responseData = response.json() 
+            responseData = json.loads(response.text.replace("\\" , ""))
         elif response.status_code == 403:
             self.__log.error("MobileIndexService - [Forbidden] - 403 - {}".format(json.dumps(dto.toDict())))
             return 
@@ -122,16 +127,20 @@ class MobileIndexService (Service):
         data = self.__getJsonToMobileIndex({
             "packageName" : package
         })
-        if "status" in data and data["status"] == False: 
+        if "status" in data and (data["status"] == False): 
             data = {
                 "package_name" : package
             }
             mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
-            processStack.append(mIMarketInfoDto.toGoogleEmptyAppEntity())    
+            appEntity = mIMarketInfoDto.toGoogleAppEntity()
+            appEntity.setMappingCode("")
+            processStack.append(appEntity)    
         else : 
             try :
                 mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
-                processStack.append(mIMarketInfoDto.toAppleAppEntity())
+                if mIMarketInfoDto.getAppId != None:
+                    processStack.append(mIMarketInfoDto.toAppleAppEntity())
+                    
                 processStack.append(mIMarketInfoDto.toGoogleAppEntity())
             except TypeError as e : 
                 print(package)

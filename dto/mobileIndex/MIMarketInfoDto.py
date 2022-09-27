@@ -27,7 +27,10 @@ class MIMarketInfoDto(Dto) :
         
     def ofMappingDict(self , obj:dict ) :
         self.__package_name = obj["package_name"]
-        self.__apple_id = "id" + obj["apple_id"]  if "apple_id" in obj and obj["apple_id"] != None else ""
+        if "apple_id" in obj and obj["apple_id"] != None and obj["apple_id"] != "":
+            self.__apple_id = "id" + obj["apple_id"] 
+        else :
+            self.__apple_id = None
         self.generateMappingCode()
         return self
     
@@ -35,15 +38,6 @@ class MIMarketInfoDto(Dto) :
     def generateMappingCode(self):
         self.__mapping_code = uuid.uuid4()
     
-    def toGoogleEmptyAppEntity(self) :
-        appEntity = AppEntity()
-        appEntity.setId(self.getPackageName)
-        appEntity.setMarketNum(1)
-        appEntity.setMappingCode("")
-        appEntity.setLastUpdateCurrent()
-        appEntity.setIsActive('Y')
-        return appEntity
-        
     def toGoogleAppEntity(self) :
         appEntity = AppEntity()
         appEntity.setId(self.getPackageName)
