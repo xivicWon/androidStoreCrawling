@@ -131,20 +131,13 @@ class MobileIndexService (Service):
             data = {
                 "package_name" : package
             }
-            mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
-            appEntity = mIMarketInfoDto.toGoogleAppEntity()
-            appEntity.setMappingCode("")
-            processStack.append(appEntity)    
-        else : 
-            try :
-                mIMarketInfoDto = MIMarketInfoDto().ofMappingDict(data)
-                if mIMarketInfoDto.getAppId != None:
-                    processStack.append(mIMarketInfoDto.toAppleAppEntity())
-                    
-                processStack.append(mIMarketInfoDto.toGoogleAppEntity())
-            except TypeError as e : 
-                print(package)
         
+        mIMarketInfoDto = MIMarketInfoDto.ofMappingDict(data)
+        processStack.append(mIMarketInfoDto.toGoogleAppEntity())    
+
+        if mIMarketInfoDto.getAppId != None  :
+            print(mIMarketInfoDto.getAppId)
+            processStack.append(mIMarketInfoDto.toAppleAppEntity())
         
     def consumerProcess(self, q: Queue):
         envManager = EnvManager.instance()

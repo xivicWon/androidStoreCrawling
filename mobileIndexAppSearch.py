@@ -32,6 +32,7 @@ def main() :
     
     offset:int = 0
     limit:int = random.randrange(1,500)
+    limit:int = 100
     logManager.info("Market : Google / Process : {0:,} / Maximun Thread : {0:,}".format( PROCESS_COUNT, MAX_THREAD_COUNT ))
     logManager.info("Offset {0:,} / Limit {0:,}".format( offset, limit ))
     multiProcess.addThreadJob(mobileIndexService.getThreadJobOfNoMappingApps(MARKET_NUM , offset=offset, limit=limit))

@@ -387,6 +387,7 @@ class AppStoreRepository(Repository) :
                     ON A.num = M.app_num 
             WHERE   M.is_done = 'N'
                 AND A.is_active = 'Y'
+            ORDER BY A.num ASC 
             LIMIT   %s , %s
         """
         field = ( offset , limit)

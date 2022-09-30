@@ -24,15 +24,17 @@ class MIMarketInfoDto(Dto) :
     
     def setAppId (self, apple_id):
         self.__apple_id = apple_id 
-        
-    def ofMappingDict(self , obj:dict ) :
-        self.__package_name = obj["package_name"]
+    
+    @staticmethod
+    def ofMappingDict( obj:dict ) :
+        dto = MIMarketInfoDto()
+        dto.__package_name = obj["package_name"]
         if "apple_id" in obj and obj["apple_id"] != None and obj["apple_id"] != "":
-            self.__apple_id = "id" + obj["apple_id"] 
+            dto.__apple_id = "id" + obj["apple_id"] 
+            dto.generateMappingCode()
         else :
-            self.__apple_id = None
-        self.generateMappingCode()
-        return self
+            dto.__apple_id = None
+        return dto
     
         
     def generateMappingCode(self):
