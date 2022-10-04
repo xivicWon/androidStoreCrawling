@@ -8,6 +8,7 @@ class AppEntity(Entity):
     __market_num : int
     __developer_num : int
     __cate_num : int
+    __country_code_num : int
     __app_name : str
     __min_use_age : int
     __mapping_code : str
@@ -30,6 +31,10 @@ class AppEntity(Entity):
     @property
     def getMarketNum( self):
         return self.__market_num
+    
+    @property
+    def getCountryCodeNum( self):
+        return self.__country_code_num
     
     @property
     def getIsActive( self):
@@ -76,6 +81,10 @@ class AppEntity(Entity):
         self.__developer_num = developer_num 
         return self
     
+    def setCountryCodeNum(self, country_code_num):
+        self.__country_code_num = country_code_num
+        return self 
+    
     def setCateNum(self, cate_num):
         self.__cate_num = cate_num
         return self 
@@ -100,35 +109,25 @@ class AppEntity(Entity):
         self.__mapping_code = mapping_code
         return self
   
-    def ofDict(self , obj:dict):
-        self.__num = obj["num"] if "num" in obj else 0
-        self.__id = obj["id"]
-        self.__app_name = obj["app_name"] 
-        self.__developer_num = obj["developer_num"]
-        self.__market_num = obj["market_num"] 
-        self.__cate_num = obj["cate_num"] 
-        self.__min_use_age = obj["min_use_age"] 
-        self.__mapping_code = obj["mapping_code"] if 'mapping_code' in obj else ""
-        self.__is_active = obj["is_active"]  if 'is_active' in obj else ""
-        self.setLastUpdate(obj["last_update"] if 'last_update' in obj else None)
-        self.__rating = obj["rating"] if 'rating' in obj else 0  
-        return self
+    @staticmethod
+    def ofDict( obj:dict):
+        appEntity = AppEntity()
+        appEntity.__num = obj["num"] if "num" in obj else 0
+        appEntity.__id = obj["id"]
+        appEntity.__app_name = obj["app_name"] 
+        appEntity.__country_code_num = obj["country_code_num"]
+        appEntity.__developer_num = obj["developer_num"]
+        appEntity.__market_num = obj["market_num"] 
+        appEntity.__cate_num = obj["cate_num"] 
+        appEntity.__min_use_age = obj["min_use_age"] 
+        appEntity.__mapping_code = obj["mapping_code"] if 'mapping_code' in obj else ""
+        appEntity.__is_active = obj["is_active"]  if 'is_active' in obj else ""
+        appEntity.setLastUpdate(obj["last_update"] if 'last_update' in obj else None)
+        appEntity.__rating = obj["rating"] if 'rating' in obj else 0  
+        return appEntity
     
-    def ofManyDict (self, objs:List[dict]) :
-        condition: Callable[[dict] , AppEntity] = lambda o : AppEntity().ofDict(o)
+    @staticmethod
+    def ofManyDict (objs:List[dict]) :
+        condition: Callable[[dict] , AppEntity] = lambda o : AppEntity.ofDict(o)
         return list(map(condition, objs))
     
-    def generateMappingCode(self, str ):
-        if str == None : 
-            return ""
-        else :
-            return "__{}__".format( str)  
-    
-    
-    def getMarketNumByName(self, str:str):
-        if str == "google" :
-            return 1 
-        elif  str == "apple" :
-            return 2 
-        elif  str == "one" :
-            return 3 

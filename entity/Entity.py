@@ -3,6 +3,10 @@ import json
 
 class Entity :
     
+    
+    def __str__(self):
+        return json.dumps(vars(self))
+    
     def toString(self):
         return json.dumps(vars(self))
     

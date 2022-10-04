@@ -8,6 +8,7 @@ from entity.AppMarketScrap import AppMarketScrap
 from entity.AppMarketDeveloperEntity import AppMarketDeveloperEntity
 from entity.AppResourceEntity import AppResourceEntity
 from entity.AppEntity import AppEntity
+from entity.ISOCountryCode import ISOCountryCode
 from module.OpenDB_v3 import OpenDB
 from module.LogModule import LogModule
 class AppStoreRepository(Repository) :
@@ -28,7 +29,7 @@ class AppStoreRepository(Repository) :
         result = self.dbManager.selectOne(query ,field)
         
         if type(result) == dict : 
-            return AppEntity().ofDict(result)
+            return AppEntity.ofDict(result)
         else :
             self.__log.warning("{} return is None".format(self.findAppById.__qualname__ ))
             return None
@@ -38,6 +39,8 @@ class AppStoreRepository(Repository) :
         query = """
             SELECT  *
             FROM    app AS A
+                INNER JOIN ISO_country_code AS C 
+                    ON A.country_code_num = C.num
                 LEFT JOIN apps_resource AS R    
                     ON A.num = R.app_num 
             WHERE   (app_name IS NULL or app_name = '') 
@@ -49,8 +52,9 @@ class AppStoreRepository(Repository) :
         result = self.dbManager.select(query ,field)
         if type(result) == list : 
             return list(map( lambda t : AppWithDeveloperWithResourceDto()
-                            .setAppEntity( AppEntity().ofDict(t))
-                            .setAppResourceEntity(AppResourceEntity().ofDict(t)), result )) 
+                            .setAppEntity( AppEntity.ofDict(t))
+                            .setAppResourceEntity(AppResourceEntity.ofDict(t))
+                            .setISOCountryCodeEntity(ISOCountryCode.ofDict(t)), result )) 
         else :
             self.__log.warning("{} return is None".format(self.findNoNameAppLimitedTo.__qualname__ ))
             return None
@@ -67,7 +71,7 @@ class AppStoreRepository(Repository) :
         result = self.dbManager.select(query ,field)
         
         if type(result) == list : 
-            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+            return list(map( lambda t : AppEntity.ofDict(t) , result )) 
         else :
             self.__log.warning("{} return is None".format(self.findAppLimitedTo.__qualname__ ))
             return None
@@ -87,21 +91,21 @@ class AppStoreRepository(Repository) :
                 appMarketDeveloperEntity.getDeveloperName
             )
         )
-        return AppMarketDeveloperEntity().ofDict(result[0]) if type(result) == list  else None
+        return AppMarketDeveloperEntity.ofDict(result[0]) if type(result) == list  else None
+    
+    # def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
+    #     query = """
+    #         SELECT  *
+    #         FROM    app_market_developer
+            
+    #     """
+        
+    #     result = self.dbManager.select(
+    #         query, ()
+    #     )
+    #     return AppMarketDeveloperEntity.ofManyDict(result) if type(result) == list  else []
     
     def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
-        query = """
-            SELECT  *
-            FROM    app_market_developer
-            
-        """
-        
-        result = self.dbManager.select(
-            query, ()
-        )
-        return AppMarketDeveloperEntity().ofManyDict(result) if type(result) == list  else []
-    
-    def findAllDeveloperByDeveloperMarketId_(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
         query = """
             SELECT  *
             FROM    app_market_developer
@@ -122,7 +126,7 @@ class AppStoreRepository(Repository) :
                 developerMarketId
             )
         )
-        return AppMarketDeveloperEntity().ofManyDict(result) if type(result) == list  else []
+        return AppMarketDeveloperEntity.ofManyDict(result) if type(result) == list and len(result) > 0  else []
     
     
     
@@ -147,7 +151,7 @@ class AppStoreRepository(Repository) :
                 Ids
             )
         )
-        return AppEntity().ofManyDict(result) if type(result) == list  else []
+        return AppEntity.ofManyDict(result) if type(result) == list  else []
     
     def saveDeveloper(self, appMarketDeveloperEntity : AppMarketDeveloperEntity) -> int:
 
@@ -340,7 +344,7 @@ class AppStoreRepository(Repository) :
         """
         field = (market_num)
         result = self.dbManager.select(query ,field)
-        return list(map( lambda t : AppEntity().ofDict(t) , result )) if type(result) == list else None
+        return list(map( lambda t : AppEntity.ofDict(t) , result )) if type(result) == list else None
     
     
 
@@ -393,7 +397,7 @@ class AppStoreRepository(Repository) :
         field = ( offset , limit)
         result = self.dbManager.select(query ,field)
         if type(result) == list : 
-            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+            return list(map( lambda t : AppEntity.ofDict(t) , result )) 
         else :
             self.__log.warning("{} return is None".format(self.findAppInAppScanningForMappingLimitedTo.__qualname__ ))
             return None
@@ -423,7 +427,7 @@ class AppStoreRepository(Repository) :
         field = ( offset , limit)
         result = self.dbManager.select(query ,field)
         if type(result) == list : 
-            return list(map( lambda t : AppEntity().ofDict(t) , result )) 
+            return list(map( lambda t : AppEntity.ofDict(t) , result )) 
         else :
             self.__log.warning("{} return is None".format(self.findHasNoResourceApp.__qualname__ ))
             return None

@@ -23,12 +23,12 @@ class AppMarketDeveloperEntity(Entity) :
     def getDeveloperName(self):
         return self.__developer_name
 
-    def getDecodeDeveloperName(self) : 
-        return self.__developer_name
-    
     @property
     def getDeveloperMarketId(self):
         return self.__developer_market_id
+    
+    def getDecodeDeveloperName(self) : 
+        return self.__developer_name
     
     def setDeveloperMarketId( self, developer_market_id:str):
         self.__developer_market_id = developer_market_id
@@ -46,18 +46,20 @@ class AppMarketDeveloperEntity(Entity) :
         self.__company_num = company_num 
         return self
     
-    def ofDict(self , obj:Dict):
-        self.__num = obj["num"]
-        self.__market_num = obj["market_num"]
-        self.__company_num = obj["company_num"]
-        self.__developer_name = obj["developer_name"]
-        self.__developer_market_id = obj["developer_market_id"]
-        return self
+    @staticmethod
+    def ofDict( obj:Dict):
+        appMarketDeveloperEntity = AppMarketDeveloperEntity()
+        appMarketDeveloperEntity.__num = obj["num"]
+        appMarketDeveloperEntity.__market_num = obj["market_num"]
+        appMarketDeveloperEntity.__company_num = obj["company_num"]
+        appMarketDeveloperEntity.__developer_name = obj["developer_name"]
+        appMarketDeveloperEntity.__developer_market_id = obj["developer_market_id"]
+        return appMarketDeveloperEntity
     
-    def ofManyDict(self , objs:List[Dict])->List:
+    @staticmethod
+    def ofManyDict(objs:List[Dict])->List:
         appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
         for obj in objs :
-            appMarketDeveloperEntity = AppMarketDeveloperEntity()
-            appMarketDeveloperEntities.append(appMarketDeveloperEntity.ofDict(obj))
+            appMarketDeveloperEntities.append(AppMarketDeveloperEntity.ofDict(obj))
         return appMarketDeveloperEntities
     

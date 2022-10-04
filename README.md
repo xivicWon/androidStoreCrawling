@@ -1,4 +1,8 @@
 # 앱 스토어 스크래핑
+## v1.3.1
+    - 미사용 파일 제거.
+    - ISOCountryCode 추가.
+        - 연관 Entity 에 데이터 추가. (AppEntity.countryCodeNum)
 ## v1.3.0
     - mobileIndex 의 앱개별 조회API 추가. 
         - mapping정보가 없는 데이터만 조회해서 IOS App 정보 및 mapping_code 를 등록.

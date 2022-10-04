@@ -30,7 +30,7 @@ from service.Service import Service
 class AppleScrapService(Service) : 
     __MARKET_NUM:int = 2 
     __repository:Repository
-    __APP_ID_URL:str = "https://apps.apple.com/kr/app/"
+    __APPStore_URL:str = "https://apps.apple.com"
     __RESOURCE_DIR:str = "/images/apple"
     
     def __init__(self,repository:Repository) -> None:
@@ -51,7 +51,9 @@ class AppleScrapService(Service) :
             
         return list(map( lambda s: ThreadJobDto(url = s) , crwlingJob))
     
-    
+    def getScrapUrlLink( self, national,  appid ):
+        return "/".join([self.__APPStore_URL, national , "app", appid])
+        
     def getNoNameOrNoImageApps(self, offset:int , limit: int ) : 
         appList = self.__repository.findNoNameAppLimitedTo(self.__MARKET_NUM , offset , limit)
         crwlingJob:List[ThreadJobDto] = []
@@ -59,9 +61,11 @@ class AppleScrapService(Service) :
             msg = "조회된 스크랩대상 데이터가 없음 {} ".format(self.__MARKET_NUM)
             print(msg)
             exit()
-            
+        
         for dto in appList :
-            url = self.__APP_ID_URL + dto.getAppEntity.getId
+            url = self.getScrapUrlLink(
+                dto.getISOCountryCodeEntity.getAlpha2, 
+                dto.getAppEntity.getId ) 
             resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
             crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir, dto=dto))
         return crwlingJob
@@ -95,7 +99,6 @@ class AppleScrapService(Service) :
             processStack.append(DomParser.mappingInactiveDto(AppleScrapService.__MARKET_NUM, appId))
         else:
             raise requests.exceptions.ReadTimeout(url)
-        
         
     def requestUrl(self, url : str,  errorStack:List[ErrorDto]):
         header = {"Accept-Language" : "ko-KR"}
