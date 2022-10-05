@@ -95,8 +95,13 @@ class MobileIndexService (Service):
                 mIMarketInfoDto.generateMappingCode()
                 mIMarketInfoDto.setPackageName(app["package_name"])
                 mIMarketInfoDto.setAppId("id" + app["market_appid"])
-                appEntities.append(mIMarketInfoDto.toAppleAppEntity())
-                appEntities.append(mIMarketInfoDto.toGoogleAppEntity())
+                appleAppEntity = mIMarketInfoDto.toAppleAppEntity()
+                if appleAppEntity != None :
+                    appEntities.append(appleAppEntity)
+                    
+                googleAppEntity = mIMarketInfoDto.toGoogleAppEntity()
+                if googleAppEntity != None :
+                    appEntities.append(googleAppEntity)
     
     def isOneStoreApp(self, appStoreName:str ):
         return appStoreName == "one"
@@ -133,11 +138,15 @@ class MobileIndexService (Service):
             }
         
         mIMarketInfoDto = MIMarketInfoDto.ofMappingDict(data)
-        processStack.append(mIMarketInfoDto.toGoogleAppEntity())    
-
-        if mIMarketInfoDto.getAppId != None  :
-            print(mIMarketInfoDto.getAppId)
-            processStack.append(mIMarketInfoDto.toAppleAppEntity())
+        mIMarketInfoDto.generateMappingCode()
+    
+        googleAppEntity = mIMarketInfoDto.toGoogleAppEntity()
+        if googleAppEntity != None  :
+            processStack.append(googleAppEntity)
+            
+        appleAppEntity = mIMarketInfoDto.toAppleAppEntity()
+        if appleAppEntity != None  :
+            processStack.append(appleAppEntity)
         
     def consumerProcess(self, q: Queue):
         envManager = EnvManager.instance()

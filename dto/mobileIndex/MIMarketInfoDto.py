@@ -31,17 +31,21 @@ class MIMarketInfoDto(Dto) :
         dto.__package_name = obj["package_name"]
         if "apple_id" in obj and obj["apple_id"] != None and obj["apple_id"] != "":
             dto.__apple_id = "id" + obj["apple_id"] 
-            dto.generateMappingCode()
         else :
             dto.__apple_id = None
         return dto
     
         
     def generateMappingCode(self):
-        self.__mapping_code = uuid.uuid4()
+        if( (self.getPackageName == "" or self.getPackageName == None) and (self.getAppId == "" or self.getAppId == None) ):
+            self.__mapping_code = ""
+        else : 
+            self.__mapping_code = uuid.uuid4()
     
     def toGoogleAppEntity(self) :
         appEntity = AppEntity()
+        if( self.getPackageName == "" or self.getPackageName == None ):
+            return None
         appEntity.setId(self.getPackageName)
         appEntity.setMarketNum(1)
         appEntity.setMappingCode(self.__mapping_code)
@@ -51,6 +55,8 @@ class MIMarketInfoDto(Dto) :
         
     def toAppleAppEntity(self) :
         appEntity = AppEntity()
+        if( self.getAppId == "" or self.getAppId == None ):
+            return None
         appEntity.setId(self.getAppId)
         appEntity.setMarketNum(2)
         appEntity.setMappingCode(self.__mapping_code)
