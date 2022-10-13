@@ -5,3 +5,13 @@ docker run \
 -v /data/appstore/images:/images \
 appstore_scraping:latest \
 python test.py
+
+
+
+docker run \
+--rm \
+--name=run_once \
+-v /home/appstore/appstore_scraping:/app \
+-v /data/appstore/images:/images \
+appstore_scraping:latest \
+python convertImagesInDirectory.py /images/google/202209_9/

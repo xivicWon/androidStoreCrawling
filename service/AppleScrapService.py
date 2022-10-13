@@ -85,6 +85,7 @@ class AppleScrapService(Service) :
                 else :
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , url))
             else :
+                
                 FileManager.makeDirs(threadJobDto.getResourceDir)
                 appDto = DomParser.parseAppleAppDetail(res)                
                 result = DomParser.getAppWithDeveloperWithResourceDto (
