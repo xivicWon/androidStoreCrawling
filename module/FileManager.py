@@ -27,6 +27,7 @@ import random
 from module.SingletonInstance import SingletonInstance
 
 class FileManager(SingletonInstance):
+    MAX_DIRECTORY_COUNT_FOR_MONTHLY: int = 3
     
     @staticmethod
     def setFileOwnWithMod(fileDir:str) :
@@ -57,4 +58,4 @@ class FileManager(SingletonInstance):
 
     @staticmethod
     def randomResourceSubDirectory():
-        return datetime.datetime.now().strftime("%Y%m") + "_" + str(random.randrange(1,21))
+        return datetime.datetime.now().strftime("%Y%m") + "_" + str(random.randrange(1,FileManager.MAX_DIRECTORY_COUNT_FOR_MONTHLY))
