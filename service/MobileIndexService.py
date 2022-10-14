@@ -33,7 +33,8 @@ class MobileIndexService (Service):
     def __getJsonToMobileIndex(self, data ) -> dict : 
         headers = {
             'Content-Type': self.__CONTENT_TYPE,
-            'referer':  self.__REFERER
+            'referer':  self.__REFERER,
+            'secret-key': MIRequestDto.generateSecretKey()
         }
         url = self.__DOMAIN + self.__market_info
         try :
@@ -61,12 +62,14 @@ class MobileIndexService (Service):
             
         for dto in appList :
             crwlingJob.append(ThreadJobDto(url = dto.getId, resourceDir = None, dto=dto ))
+        
         return crwlingJob
 
     def getGlobalRank(self, dto:MIRequestDto, appEntities:List[AppEntity]):
         headers = {
             'Content-Type':  self.__CONTENT_TYPE,
-            'referer': self.__REFERER,
+            'referer': self.__REFERER, 
+            'secret-key': MIRequestDto.generateSecretKey()
         }
         url = self.__DOMAIN + self.__global_rank_v2
         response = Curl.request (
@@ -85,6 +88,9 @@ class MobileIndexService (Service):
             self.__log.error("MobileIndexService - {} - {}".format(response.status_code, json.dumps(dto.toDict())))
             return 
         
+        if responseData["status"] == False : 
+            self.__log.error("MobileIndexService - {}".format(responseData["message"]))
+            return 
         ranks = responseData["data"]
         
         for app in ranks : 
@@ -92,9 +98,9 @@ class MobileIndexService (Service):
                 continue
             elif self.isAppleStoreApp(app["market_name"]) : 
                 mIMarketInfoDto = MIMarketInfoDto()
-                mIMarketInfoDto.generateMappingCode()
                 mIMarketInfoDto.setPackageName(app["package_name"])
                 mIMarketInfoDto.setAppId("id" + app["market_appid"])
+                mIMarketInfoDto.generateMappingCode()
                 appleAppEntity = mIMarketInfoDto.toAppleAppEntity()
                 if appleAppEntity != None :
                     appEntities.append(appleAppEntity)
@@ -132,14 +138,14 @@ class MobileIndexService (Service):
         data = self.__getJsonToMobileIndex({
             "packageName" : package
         })
-        if "status" in data and (data["status"] == False): 
+        if ( "status" in data) and (data["status"] == False): 
             data = {
                 "package_name" : package
             }
         
         mIMarketInfoDto = MIMarketInfoDto.ofMappingDict(data)
         mIMarketInfoDto.generateMappingCode()
-    
+
         googleAppEntity = mIMarketInfoDto.toGoogleAppEntity()
         if googleAppEntity != None  :
             processStack.append(googleAppEntity)

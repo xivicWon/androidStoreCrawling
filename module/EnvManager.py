@@ -20,6 +20,7 @@ class EnvManager(SingletonInstance) :
     LOG_ERROR_PATH:str
     LOG_ERROR_NAME:str
     LOG_ERROR_MAX_DAY:int
+    
     def __init__(self) -> None:
         load_dotenv()
         self.__setEnv()
@@ -42,7 +43,7 @@ class EnvManager(SingletonInstance) :
         self.LOG_ERROR_PATH= os.environ.get("LOG.ERROR_PATH")
         self.LOG_ERROR_NAME = os.environ.get("LOG.ERROR_NAME")
         self.LOG_ERROR_MAX_DAY = EnvManager.getMaxDay(os.environ.get("LOG.LOG_ERROR_MAX_DAY"))
-
+        
     @staticmethod 
     def getStatus( value ):
         return value == "ON" 

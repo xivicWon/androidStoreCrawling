@@ -1,4 +1,5 @@
 from dto.Dto import Dto
+import datetime as dt
 
 class MIRequestDto(Dto) :
     __market : str
@@ -65,3 +66,11 @@ class MIRequestDto(Dto) :
             "startRank" : self.__startRank,
             "endRank" : self.__endRank,
         }
+        
+    @staticmethod   
+    def generateSecretKey():
+        secretWord = "ihateyousomuch"
+        key = list(secretWord)
+        today = dt.datetime.now()
+        mappingCode = "{}{}{}".format(today.year, today.month -1 , today.day  ) 
+        return "".join(map(lambda t : key[int(t)] , list(str(int(mappingCode)>>1))))
