@@ -7,10 +7,9 @@ class ThreadJobDto (Dto):
     __resourceDir: str
     __dto : AppWithDeveloperWithResourceDto
     
-    def __init__(self, url , resourceDir, dto) -> None:
+    def __init__(self, url , resourceDir) -> None:
         self.__url = url
         self.__resourceDir = resourceDir
-        self.__dto = dto
     
     @property
     def getUrl(self):

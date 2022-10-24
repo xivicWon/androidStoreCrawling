@@ -58,4 +58,4 @@ class FileManager(SingletonInstance):
 
     @staticmethod
     def randomResourceSubDirectory():
-        return datetime.datetime.now().strftime("%Y%m") + "_" + str(random.randrange(1,FileManager.MAX_DIRECTORY_COUNT_FOR_MONTHLY))
+        return datetime.datetime.now().strftime("%Y%m") + "_" + str(random.randrange(1, FileManager.MAX_DIRECTORY_COUNT_FOR_MONTHLY))

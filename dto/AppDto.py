@@ -1,17 +1,18 @@
 from urllib import parse, request
 import os
+
 from dto.Dto import Dto
 
 class AppDto(Dto) : 
     DEFAULT_IMAGE_WIDTH:int = 256
     developerId: str
     developerName : str
-    
     appName: str
     appId : str
     appRating : int
     appImage : str 
     appIsActive: str
+    countryCodeNum : int
     def __init__(self   ) -> None:
         pass
     
@@ -41,6 +42,7 @@ class AppDto(Dto) :
             appDto.appImage = ""
             
         appDto.appIsActive =  data["is_active"] if "is_active" in data else "Y"
+        appDto.countryCodeNum = data["conutryCodeNum"]
         return appDto 
     
     @staticmethod
@@ -49,7 +51,7 @@ class AppDto(Dto) :
         appDto.appName = parse.unquote(data["name"])
         appDto.appId = "id" + data["id"]
         appDto.appRating = int(data["userRating"]["value"] * 10)
-        
+        appDto.countryCodeNum = data["conutryCodeNum"]
         appDto.developerId = parse.unquote(data["relationships"]["developer"]["data"][0]["id"]) if "relationships" in data and "developer" in data["relationships"] and "data" in data["relationships"]["developer"] and len(data["relationships"]["developer"]["data"]) > 0 and "id" in data["relationships"]["developer"]["data"][0] else ""
         appDto.developerName = parse.unquote(data["artistName"]) if "artistName" in data else ""
         if "artwork" in data and "url" in data["artwork"] :
@@ -70,6 +72,7 @@ class AppDto(Dto) :
         appDto.developerId = parse.unquote(developerUrl.split("/")[-1]) 
         appDto.developerName = parse.unquote(data["author"]["name"]) if "author" in data and "name" in data["author"] else ""
         appDto.appImage = data["img"] if "img" in data else ""
+        appDto.countryCodeNum = data["conutryCodeNum"]
       
         return appDto
     
@@ -90,6 +93,9 @@ class AppDto(Dto) :
     
     def getAppImage( self ) -> str : 
         return self.appImage
+    
+    def getCountryCodeNum(self)-> int :
+        return self.countryCodeNum
     
     @staticmethod
     def downloadImg (downloadLink:str, toDirectory:str, fileName:str, force:bool = False) -> str :

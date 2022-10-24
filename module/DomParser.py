@@ -34,6 +34,7 @@ class DomParser :
             appIconSrcSet = soup.select_one('source').get("srcset", default="")
             
             data["img"]  = appIconSrcSet.split(",")[0].split(" ")[0]
+            data["conutryCodeNum"] = 410
             return AppDto.ofAppleAppDetail(data)
         except AttributeError as e : 
             msg = "domParser] data : {} ]".format(e)
@@ -55,6 +56,7 @@ class DomParser :
                 if( type(data["chartsList"]["data"]) == list and len(data["chartsList"]["data"]) > 0 ):
                     parsingResult = []
                     for data in data["chartsList"]["data"] :
+                        data["conutryCodeNum"] = 410
                         parsingResult.append(
                             DomParser.mappingActiveAppOnlyDto(
                                 marketNum=DomParser.__APPLE_MARKET_NUM, 
@@ -103,6 +105,7 @@ class DomParser :
             msg = "TypeError] Response [status code : {} , url : {}, data : {}  ]".format(response.status_code , response.url, data)
             raise TypeError(msg)
         
+        data["conutryCodeNum"] = 410
         return AppDto.ofGoogle(data)
         
         
@@ -120,6 +123,7 @@ class DomParser :
             .setId(appDto.getAppId())\
             .setDeveloperNum(0)\
             .setMarketNum(marketNum)\
+            .setCountryCodeNum(appDto.getCountryCodeNum())\
             .setIsActive("Y")\
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
@@ -153,6 +157,7 @@ class DomParser :
             .setId(appDto.getAppId())\
             .setDeveloperNum(0)\
             .setMarketNum(marketNum)\
+            .setCountryCodeNum(appDto.getCountryCodeNum())\
             .setIsActive("Y")\
             .setRating(appDto.getAppRating())\
             .setLastUpdateCurrent()
@@ -172,6 +177,7 @@ class DomParser :
             .setId(appId)\
             .setDeveloperNum(0)\
             .setMarketNum(marketNum)\
+            .setCountryCodeNum(0)\
             .setIsActive("N")\
             .setRating(0)\
             .setLastUpdateCurrent()

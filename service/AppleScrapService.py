@@ -49,7 +49,8 @@ class AppleScrapService(Service) :
             print("조회된 스크랩대상 데이터가 없음 {} {} {} ".format(self.__MARKET_NUM))
             exit()
             
-        return list(map( lambda s: ThreadJobDto(url = s) , crwlingJob))
+        resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
+        return list(map( lambda s: ThreadJobDto(url = s, resourceDir=resourceDir) , crwlingJob))
     
     def getScrapUrlLink( self, national,  appid ):
         return "/".join([self.__APPStore_URL, national , "app", appid])
@@ -67,7 +68,7 @@ class AppleScrapService(Service) :
                 dto.getISOCountryCodeEntity.getAlpha2, 
                 dto.getAppEntity.getId ) 
             resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
-            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir, dto=dto))
+            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir))
         return crwlingJob
             
     def threadProducer(self, threadJobDto : ThreadJobDto,  processStack:List[Dto], errorStack:List[ErrorDto] ):
@@ -85,7 +86,6 @@ class AppleScrapService(Service) :
                 else :
                     errorStack.append(ErrorDto.build(ErrorCode.RESPONSE_FAIL , url))
             else :
-                
                 FileManager.makeDirs(threadJobDto.getResourceDir)
                 appDto = DomParser.parseAppleAppDetail(res)                
                 result = DomParser.getAppWithDeveloperWithResourceDto (
@@ -143,7 +143,6 @@ class AppleScrapService(Service) :
                 
         if len(responseResults) > 0 :
             self.updateResponseToRepository(responseResults)
-            
     
     def saveDeveloperInfo(self, dtos : List[AppWithDeveloperWithResourceDto]):
         appMarketDeveloperEntities:List[AppMarketDeveloperEntity] = []
@@ -167,8 +166,10 @@ class AppleScrapService(Service) :
         timeChecker.start(code="Repository-Developer")
         appMarketDeveloperEntities = self.saveDeveloperInfo(dtos)
         timeChecker.stop(code="Repository-Developer")
-        findAllAppMarketDeveloperEntities = self.__repository.findAllDeveloperByDeveloperMarketId(appMarketDeveloperEntities)  
-        
+        if len(appMarketDeveloperEntities) > 0 : 
+            findAllAppMarketDeveloperEntities = self.__repository.findAllDeveloperByDeveloperMarketId(appMarketDeveloperEntities)  
+        else :
+            findAllAppMarketDeveloperEntities = []
         #2. app 등록 및 번호조회
         timeChecker.start(code="Repository-App")
         appEntities:List[AppEntity] = []

@@ -48,6 +48,18 @@ class AppStoreRepository(Repository) :
                 AND market_num = %s
             LIMIT   %s, %s
         """
+        query = """
+            SELECT  *
+            FROM    app AS A
+                LEFT JOIN ISO_country_code AS C 
+                    ON A.country_code_num = C.num
+                LEFT JOIN apps_resource AS R    
+                    ON A.num = R.app_num 
+            WHERE   (app_name IS NULL OR app_name = '' OR app_name <> 'undefined-app' ) 
+            	AND A.developer_num = 0 
+                AND market_num = %s
+            LIMIT   %s, %s
+        """
         field = (market_num, offset , limit)
         result = self.dbManager.select(query ,field)
         if type(result) == list : 
@@ -202,8 +214,8 @@ class AppStoreRepository(Repository) :
      
     def saveBulkApp(self, appEntities: List[AppEntity]):
         query = """
-            INSERT INTO app ( id, market_num, app_name, is_active, last_update, developer_num, rating) 
-            VALUES (%s, %s, %s,%s, %s, %s, %s)
+            INSERT INTO app ( id, market_num, app_name, country_code_num, is_active, last_update, developer_num, rating) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE 
                 app_name = VALUES(app_name),
                 is_active = VALUES(is_active),
@@ -216,6 +228,7 @@ class AppStoreRepository(Repository) :
             fields.append(( appEntity.getId,
                             appEntity.getMarketNum,
                             appEntity.getAppName ,
+                            appEntity.getCountryCodeNum ,
                             appEntity.getIsActive,
                             appEntity.getLastUpdate,
                             appEntity.getDeveloperNum,

@@ -46,7 +46,7 @@ class GoogleScrapService(Service) :
         for dto in appList :
             url = self.__APP_ID_URL + dto.getAppEntity.getId
             resourceDir = self.__RESOURCE_DIR + "/" + FileManager.randomResourceSubDirectory()
-            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir, dto=dto))
+            crwlingJob.append(ThreadJobDto(url = url, resourceDir = resourceDir))
             
         return crwlingJob
     
