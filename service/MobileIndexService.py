@@ -24,16 +24,18 @@ class MobileIndexService (Service):
     __market_info:str =  "/api/app/market_info"
     __repository :AppStoreRepository 
     __log: LogModule
+    __SECRET_KEY : str
     def __init__(self, appStoreRepository, logModule:LogModule ):
         self.__repository = appStoreRepository
         self.__log = logModule 
+        self.__SECRET_KEY = MIRequestDto.generateSecretKey()
         pass
 
     def __getJsonToMobileIndex(self, data ) -> dict : 
         headers = {
             'Content-Type': self.__CONTENT_TYPE,
             'referer':  self.__REFERER,
-            'secret-key': MIRequestDto.generateSecretKey()
+            'secret-key': self.__SECRET_KEY
         }
         url = self.__DOMAIN + self.__market_info
         try :
@@ -68,7 +70,7 @@ class MobileIndexService (Service):
         headers = {
             'Content-Type':  self.__CONTENT_TYPE,
             'referer': self.__REFERER, 
-            'secret-key': MIRequestDto.generateSecretKey()
+            'secret-key': self.__SECRET_KEY
         }
         url = self.__DOMAIN + self.__global_rank_v2
         response = Curl.request (

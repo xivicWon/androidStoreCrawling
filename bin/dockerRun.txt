@@ -6,8 +6,6 @@ docker run \
 appstore_scraping:latest \
 python test.py
 
-
-
 docker run \
 --rm \
 --name=run_once \
@@ -15,3 +13,19 @@ docker run \
 -v /data/appstore/images:/images \
 appstore_scraping:latest \
 python convertImagesInDirectory.py /images/google/202209_9/
+
+docker run \
+--rm \
+--name=run_once \
+-v /home/appstore/appstore_scraping:/app \
+appstore_scraping2:latest \
+python test.py
+
+
+docker run \
+--rm \
+--name=run_once \
+-v /data/appstore/images:/images \
+-v /home/appstore/appstore_scraping:/app \
+appstore_scraping2:latest \
+python3 starter.py appleScrapBySavedID

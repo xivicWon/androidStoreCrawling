@@ -9,7 +9,7 @@ services:
     image: appstore_scraping:latest
     environment:
       - TZ=Asia/Seoul
-    command: python starter.py mobileIndexRankApi
+    command: python3 starter.py mobileIndexRankApi
     volumes:
       - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
       - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/images"

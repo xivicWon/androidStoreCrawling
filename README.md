@@ -1,4 +1,9 @@
 # 앱 스토어 스크래핑
+## v1.4.1
+    - DockerFile 
+        - Ubuntu 20.04 버전
+        - python3.10 버전
+        - playwright 설치
 ## v1.3.4
     - Playwright 모듈 추가.
         - mobileindex 에서 _secret 값을 조회하기위해서.
