@@ -1,4 +1,3 @@
-from cProfile import label
 import json
 from multiprocessing import Queue
 from typing import Callable, List

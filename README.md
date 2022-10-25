@@ -1,4 +1,8 @@
 # 앱 스토어 스크래핑
+## v1.3.4
+    - Playwright 모듈 추가.
+        - mobileindex 에서 _secret 값을 조회하기위해서.
+    - mobileIndex SecretCode 생성규칙 수정.
 ## v1.3.3
     - 모바일 인덱스 secret-key 생성 함수 작성.
     - 모바일 인덱스에서 앱 등록시 mapping 데이터가 없는경우에도 값이 등록되는 오류 수정.

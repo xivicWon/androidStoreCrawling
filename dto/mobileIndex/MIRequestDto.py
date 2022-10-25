@@ -1,6 +1,9 @@
+
+import sys, rootpath
+sys.path.append(rootpath.detect())
 from dto.Dto import Dto
 import datetime as dt
-
+from module.playwright.MobileIndexCookie import MobileIndexCookie
 class MIRequestDto(Dto) :
     __market : str
     __country : str
@@ -69,8 +72,13 @@ class MIRequestDto(Dto) :
         
     @staticmethod   
     def generateSecretKey():
+        secret = MobileIndexCookie.getMobileIndexSecretCode()
         secretWord = "ihateyousomuch"
         key = list(secretWord)
-        today = dt.datetime.now()
-        mappingCode = "{}{}{}".format(today.year, today.month -1 , today.day  ) 
+        secretCode = "983272129"
+        splitCode = secret.split(secretCode)
+        today = dt.datetime.utcnow() + dt.timedelta(hours=9)
+        today.replace(hour=int(splitCode[0]),minute=int(splitCode[1]), second=0)
+        secretDate = today - dt.timedelta(hours=9)
+        mappingCode = "{}{}{}".format(secretDate.year, secretDate.month -1 , secretDate.day  ) 
         return "".join(map(lambda t : key[int(t)] , list(str(int(mappingCode)>>1))))
