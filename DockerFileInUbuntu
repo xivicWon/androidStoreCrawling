@@ -2,7 +2,7 @@
 # ex) docker build -f D:\sample\thread\DockerFile -t [imageName] .
 # ex) docker build -f /home/appstore/appstore_scraping/DockerFile -t appstore_scraping .
 # ex) For Window : docker build -f .\DockerFileInUbuntu -t appstore_scraping .
-# docker build -f DockerFileInUbuntu -t appstore_scraping2 .
+# docker build -f DockerFileInUbuntu -t appstore_scraping .
 
 FROM ubuntu:20.04
 LABEL Jaime Won="xivic@kakao.com"
@@ -18,5 +18,5 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y
 RUN apt install vim tzdata python3.10 python3-pip -y 
 RUN pip3 install --upgrade pip --ignore-install
 RUN pip3 install -r requirements.txt
-#RUN playwright install
-#RUN playwright install-deps
+RUN playwright install
+RUN playwright install-deps
