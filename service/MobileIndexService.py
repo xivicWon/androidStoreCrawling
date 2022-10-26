@@ -16,6 +16,7 @@ from module.LogModule import LogModule
 from module.EnvManager import EnvManager
 from module.LogManager import LogManager
 import requests
+import datetime as dt
 class MobileIndexService (Service): 
     __DOMAIN:str =  "https://www.mobileindex.com"
     __REFERER:str = "https://www.mobileindex.com/mi-chart/daily-rank"
@@ -24,18 +25,46 @@ class MobileIndexService (Service):
     __market_info:str =  "/api/app/market_info"
     __repository :AppStoreRepository 
     __log: LogModule
-    __SECRET_KEY : str
+    secretKey : str
     def __init__(self, appStoreRepository, logModule:LogModule ):
         self.__repository = appStoreRepository
         self.__log = logModule 
-        self.__SECRET_KEY = MIRequestDto.generateSecretKey()
+        self.secretKey = ""
+        self.loadSecretKeyFromLocalFile()
         pass
 
+    def loadSecretKeyFromLocalFile(self):
+        mobileIndexSecretCodeFile = "mobileIndexSecretCode.txt"
+        with open(mobileIndexSecretCodeFile, "r") as f :
+            secretKey = f.readline()   
+        
+        if type(secretKey) == str :
+            self.setSecretKey(secretKey=secretKey)
+        else :
+            self.__log.error("MobileIndex SecretCode를 가져오지 못하였습니다.")
+            exit()
+        
+            
+    def setSecretKey(self,secretKey ) :
+        self.secretKey = MobileIndexService.generateSecretKey(secretKey)
+        
+    @staticmethod   
+    def generateSecretKey(secret:str):
+        secretWord = "ihateyousomuch"
+        key = list(secretWord)
+        secretCode = "983272129"
+        splitCode = secret.split(secretCode)
+        today = dt.datetime.utcnow() 
+        today.replace(hour=int(splitCode[0]),minute=int(splitCode[1]), second=0)
+        secretDate = today - dt.timedelta(hours=9)
+        mappingCode = "{}{}{}".format(secretDate.year, secretDate.month -1 , secretDate.day  ) 
+        return "".join(map(lambda t : key[int(t)] , list(str(int(mappingCode)>>1))))
+    
     def __getJsonToMobileIndex(self, data ) -> dict : 
         headers = {
             'Content-Type': self.__CONTENT_TYPE,
             'referer':  self.__REFERER,
-            'secret-key': self.__SECRET_KEY
+            'secret-key': self.secretKey
         }
         url = self.__DOMAIN + self.__market_info
         try :
@@ -70,7 +99,7 @@ class MobileIndexService (Service):
         headers = {
             'Content-Type':  self.__CONTENT_TYPE,
             'referer': self.__REFERER, 
-            'secret-key': self.__SECRET_KEY
+            'secret-key': self.secretKey
         }
         url = self.__DOMAIN + self.__global_rank_v2
         response = Curl.request (

@@ -1,4 +1,12 @@
 # 앱 스토어 스크래핑
+## v1.4.2
+    - MobileIndex SecretKey Playwright 반영
+        - mobileIndexSecretKey : 키 생성 파일
+        - 기존 mobileIndex 관련 스크랩핑에서 키 조회방식 변경.
+        - MIRequestDto 에서 불필요한 함수 제거.
+    - DockerFile 
+        - DockerFile -> 삭제 
+        - DockerFileInUbuntu -> DockerFile 
 ## v1.4.1
     - DockerFile 
         - Ubuntu 20.04 

@@ -1,7 +1,7 @@
 import random
+from re import I
 import sys, rootpath
 
-from service.GoogleScrapService import GoogleScrapService
 sys.path.append(rootpath.detect())
 from repository.AppStoreRepository import AppStoreRepository
 from service.MobileIndexService import MobileIndexService
