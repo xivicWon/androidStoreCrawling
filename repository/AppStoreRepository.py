@@ -413,7 +413,7 @@ class AppStoreRepository(Repository) :
                 AND a.mapping_code IS NULL
                 AND a.market_num =1  
         """
-        self.dbManager.insert(query=query )
+        self.dbManager.insert(query=query , fields=())
     
     
     def updateAppScannedForMapping(self, appids :List[str]  ):  
