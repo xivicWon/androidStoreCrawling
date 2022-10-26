@@ -1,4 +1,4 @@
-# docker-compose -f /home/appstore/appstore_scraping/sample/docker-compose.yml up
+# docker-compose -f /home/appstore/appstore_scraping/bin/docker-compose_googleScrapBySavedID.yml up
 
 version: '3.9'
 services:

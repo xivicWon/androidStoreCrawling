@@ -1,4 +1,4 @@
-# docker-compose -f .\docker-compose_mobileIndex_rank_api.yml up
+# docker-compose -f .\docker-compose_mobileIndexRankApi.yml up
 
 version: '3.9'
 services:

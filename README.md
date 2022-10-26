@@ -1,4 +1,7 @@
 # 앱 스토어 스크래핑
+## v1.4.3
+    - docker-compose 
+        - 샘플 명령문구 수정.
 ## v1.4.2
     - MobileIndex SecretKey Playwright 반영
         - mobileIndexSecretKey : 키 생성 파일

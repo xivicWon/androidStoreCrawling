@@ -1,4 +1,4 @@
-# docker-compose -f /home/appstore/appstore_scraping/bin/window/docker-compose_mobileIndexAppSearch.yml up
+# docker-compose -f .\docker-compose_mobileIndexAppSearch.yml up
 
 version: '3.9'
 services:

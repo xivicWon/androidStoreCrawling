@@ -1,4 +1,4 @@
-# docker-compose -f ./bin/window/docker-compose_appleScrapBySavedID.yml up
+# docker-compose -f .\docker-compose_appleScrapBySavedID.yml up
 
 version: '3.9'
 services:
