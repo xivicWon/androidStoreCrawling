@@ -1,5 +1,4 @@
 import random
-from re import I
 import sys, rootpath
 
 sys.path.append(rootpath.detect())
@@ -23,6 +22,8 @@ def main() :
         database=envManager.DB_DATABASE,
         logModule=logManager)
     appStoreRepository:AppStoreRepository = AppStoreRepository(dbManager=openDB, logModule=logManager )
+    appStoreRepository.insertAppScanningForMapping()
+    
     mobileIndexService = MobileIndexService(appStoreRepository=appStoreRepository, logModule=logManager)
     multiProcess = MultiProcessThread( 
         processCount=PROCESS_COUNT ,

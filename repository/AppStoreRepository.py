@@ -105,18 +105,6 @@ class AppStoreRepository(Repository) :
         )
         return AppMarketDeveloperEntity.ofDict(result[0]) if type(result) == list  else None
     
-    # def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
-    #     query = """
-    #         SELECT  *
-    #         FROM    app_market_developer
-            
-    #     """
-        
-    #     result = self.dbManager.select(
-    #         query, ()
-    #     )
-    #     return AppMarketDeveloperEntity.ofManyDict(result) if type(result) == list  else []
-    
     def findAllDeveloperByDeveloperMarketId(self, appMarketDeveloperEntities : List[AppMarketDeveloperEntity]) -> Optional[List[AppMarketDeveloperEntity]]:
         query = """
             SELECT  *
@@ -414,6 +402,18 @@ class AppStoreRepository(Repository) :
         else :
             self.__log.warning("{} return is None".format(self.findAppInAppScanningForMappingLimitedTo.__qualname__ ))
             return None
+        
+    def insertAppScanningForMapping(self ): 
+        query = """
+            INSERT ignore INTO app_scanning_for_mapping (app_num, is_done)
+            SELECT num, 'N'
+            FROM app AS a 
+            WHERE  a.developer_num > 0 
+                AND a.is_active = 'Y'
+                AND a.mapping_code IS NULL
+                AND a.market_num =1  
+        """
+        self.dbManager.insert(query=query )
     
     
     def updateAppScannedForMapping(self, appids :List[str]  ):  

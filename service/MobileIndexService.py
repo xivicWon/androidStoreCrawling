@@ -91,7 +91,7 @@ class MobileIndexService (Service):
             exit()
             
         for dto in appList :
-            crwlingJob.append(ThreadJobDto(url = dto.getId, resourceDir = None, dto=dto ))
+            crwlingJob.append(ThreadJobDto(url = dto.getId, resourceDir = None ))
         
         return crwlingJob
 

@@ -1,4 +1,8 @@
 # 앱 스토어 스크래핑
+## v1.4.4
+    - mobileIndexAppSearch
+        - 대상이 될 데이터에 대한 업데이트 처리. (insertAppScanningForMapping)
+        - 대상조회 에러 수정.
 ## v1.4.3
     - docker-compose 
         - 샘플 명령문구 수정.
