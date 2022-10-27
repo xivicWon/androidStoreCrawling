@@ -1,4 +1,9 @@
 # 앱 스토어 스크래핑
+## v1.5.1
+    - 전체 경로 수정 
+        - 앱(apps) 별 경로 설정 ( appleScrap, googleScrap, mobileIndex )
+        - 각 기능별 docker-compose 구조 설정.
+        - 변경된 경로에 맞는 docker-compose 반영
 ## v1.4.4
     - mobileIndexAppSearch
         - 대상이 될 데이터에 대한 업데이트 처리. (insertAppScanningForMapping)

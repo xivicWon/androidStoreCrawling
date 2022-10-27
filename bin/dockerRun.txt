@@ -29,3 +29,20 @@ docker run \
 -v /home/appstore/appstore_scraping:/app \
 appstore_scraping2:latest \
 python3 starter.py appleScrapBySavedID
+
+
+
+docker run \
+--rm \
+--name=run_once \
+-v /home/appstore/appstore_scraping:/app \
+appstore_scraping:latest \
+python3 test.py
+
+
+
+
+
+docker run --rm --name=run_once -v /D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app appstore_scraping:latest python3 test.py
+
+
