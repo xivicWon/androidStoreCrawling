@@ -1,4 +1,6 @@
 # 앱 스토어 스크래핑
+## v1.5.2
+    - 미사용 파일 제거.
 ## v1.5.1
     - 전체 경로 수정 
         - 앱(apps) 별 경로 설정 ( appleScrap, googleScrap, mobileIndex )
