@@ -34,7 +34,7 @@ class MobileIndexService (Service):
         pass
 
     def loadSecretKeyFromLocalFile(self):
-        mobileIndexSecretCodeFile = "mobileIndexSecretCode.txt"
+        mobileIndexSecretCodeFile = "/app/apps/mobileIndex/mobileIndexSecretCode.txt"
         with open(mobileIndexSecretCodeFile, "r") as f :
             secretKey = f.readline()   
         

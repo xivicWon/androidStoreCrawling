@@ -1,3 +1,4 @@
+import os
 from playwright.sync_api import sync_playwright
 
 
@@ -35,7 +36,6 @@ if __name__ == "__main__":
     
     secretCode = MobileIndexCookie.getMobileIndexSecretCode()
     if type(secretCode) == str  :
-        mobileIndexSecretCodeFile = "mobileIndexSecretCode.txt"
+        mobileIndexSecretCodeFile = os.path.dirname(__file__) + "/mobileIndexSecretCode.txt"
         with open(mobileIndexSecretCodeFile, "w") as f :
             f.write(secretCode)
-    

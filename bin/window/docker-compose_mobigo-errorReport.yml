@@ -1,0 +1,13 @@
+# docker-compose -f .\docker-compose_mobileIndexSecretKey.yml up
+
+version: '3.9'
+services:
+  mobigo-errorReport:
+    container_name: mobigo-errorReport
+    image: appstore_scraping:latest
+    environment:
+      - TZ=Asia/Seoul
+    command: python3 imageMaker.py
+    volumes:
+      - /home/mobigo/reports:/app
+      - /data:/data

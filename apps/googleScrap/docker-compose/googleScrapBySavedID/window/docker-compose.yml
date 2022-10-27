@@ -1,0 +1,16 @@
+# docker-compose -f .\docker-compose_googleScrapBySavedID.yml up
+
+version: '3.9'
+services:
+  googleScrapBySavedID:
+    env_file:
+      - ../../app.env
+    container_name: googleScrapBySavedID
+    image: appstore_scraping:latest
+    environment:
+      - TZ=Asia/Seoul
+    command: /bin/sh /app/apps/googleScrap/bin/googleScrapBySavedID/run.sh
+    volumes:
+      - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
+      - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/images"
+    
