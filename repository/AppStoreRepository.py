@@ -39,24 +39,12 @@ class AppStoreRepository(Repository) :
         query = """
             SELECT  *
             FROM    app AS A
-                INNER JOIN ISO_country_code AS C 
-                    ON A.country_code_num = C.num
-                LEFT JOIN apps_resource AS R    
-                    ON A.num = R.app_num 
-            WHERE   (app_name IS NULL or app_name = '') 
-                AND A.is_active = 'Y'
-                AND market_num = %s
-            LIMIT   %s, %s
-        """
-        query = """
-            SELECT  *
-            FROM    app AS A
                 LEFT JOIN ISO_country_code AS C 
                     ON A.country_code_num = C.num
                 LEFT JOIN apps_resource AS R    
                     ON A.num = R.app_num 
-            WHERE   (app_name IS NULL OR app_name = '' OR app_name <> 'undefined-app' ) 
-            	AND A.developer_num = 0 
+            WHERE   (A.developer_num = 0 OR (app_name IS NULL OR app_name = '')) 
+                AND is_active = 'Y'
                 AND market_num = %s
             LIMIT   %s, %s
         """
