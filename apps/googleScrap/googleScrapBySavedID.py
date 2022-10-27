@@ -46,7 +46,6 @@ if __name__  == '__main__' :
     MAX_THREAD_COUNT = 100
     MARKET_NUM = 1 
     
-    
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
     main()
