@@ -47,7 +47,7 @@ class MobileIndexService (Service):
             
     def setSecretKey(self,secretKey ) :
         self.secretKey = MobileIndexService.generateSecretKey(secretKey)
-        
+
     @staticmethod   
     def generateSecretKey(secret:str):
         secretWord = "ihateyousomuch"
@@ -56,8 +56,8 @@ class MobileIndexService (Service):
         splitCode = secret.split(secretCode)
         today = dt.datetime.utcnow() 
         today.replace(hour=int(splitCode[0]),minute=int(splitCode[1]), second=0)
-        secretDate = today - dt.timedelta(hours=9)
-        mappingCode = "{}{}{}".format(secretDate.year, secretDate.month -1 , secretDate.day  ) 
+        secretDate = today - dt.timedelta(hours=0)
+        mappingCode = "{}{}{:02d}".format(secretDate.year, secretDate.month -1 , secretDate.day  ) 
         return "".join(map(lambda t : key[int(t)] , list(str(int(mappingCode)>>1))))
     
     def __getJsonToMobileIndex(self, data ) -> dict : 
@@ -101,6 +101,7 @@ class MobileIndexService (Service):
             'referer': self.__REFERER, 
             'secret-key': self.secretKey
         }
+        print(headers)
         url = self.__DOMAIN + self.__global_rank_v2
         response = Curl.request (
             method = CurlMethod.POST,

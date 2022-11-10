@@ -38,7 +38,7 @@ if __name__  == '__main__' :
     countries = ["kr", "asia", "other"]
     rankTypes = ["gross", "free", "paid"]
     appTypes = ["app", "game" ]
-    
+
     appEntities:List[AppEntity] = []
     threadList:List[Thread] = []
     for country in countries :

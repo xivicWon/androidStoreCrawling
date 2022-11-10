@@ -11,6 +11,6 @@ services:
       - TZ=Asia/Seoul
     command: /bin/sh /app/apps/appleScrap/bin/appleScrapByCategory/run.sh
     volumes:
-      - "/D/1. Workspace/8. Python/appStoreScrap/appstore_scrap:/app"
-      - "/D/1. Workspace/8. Python/appStoreScrap/data/images:/images"
+      - "/D/1. Workspace/1. Arc_Project/appListScrap/appstore_scrap:/app"
+      - "/D/1. Workspace/1. Arc_Project/appListScrap/data/images:/images"
     
