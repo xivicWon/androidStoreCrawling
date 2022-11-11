@@ -101,7 +101,6 @@ class MobileIndexService (Service):
             'referer': self.__REFERER, 
             'secret-key': self.secretKey
         }
-        print(headers)
         url = self.__DOMAIN + self.__global_rank_v2
         response = Curl.request (
             method = CurlMethod.POST,

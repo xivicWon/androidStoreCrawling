@@ -1,0 +1,16 @@
+# docker-compose -f .\docker-compose_mobileIndexRankApi.yml up --remove-orphans
+
+version: '3.9'
+name: 'mobile_index_rank_api'
+services:
+  mobileIndexRankApi:
+    env_file:
+      - ../../app.env
+    container_name: mobileIndexRankApi
+    image: appstore_scraping:latest
+    environment:
+      - TZ=Asia/Seoul
+    command: /bin/sh /app/bin/runMobileIndexRankApi.sh
+    volumes:
+      - "/D/1. Workspace/1. Arc_Project/AppListScrap/appstore_scrap:/app"
+      - "/D/1. Workspace/1. Arc_Project/AppListScrap/data/images:/images"

@@ -35,6 +35,7 @@ if __name__  == '__main__' :
     timeChecker = TimeChecker()
     timeChecker.start(code="main")
     
+    yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
     countries = ["kr", "asia", "other"]
     rankTypes = ["gross", "free", "paid"]
     appTypes = ["app", "game" ]
@@ -50,7 +51,6 @@ if __name__  == '__main__' :
                 else : 
                     mIRequestDto.setMarket("google")
                     
-                yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
                 mIRequestDto.setDate(yesterday.strftime("%Y%m%d"))
                 mIRequestDto.setStartRank(1)
                 mIRequestDto.setEndRank(100)
