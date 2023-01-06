@@ -54,10 +54,10 @@ class MobileIndexService (Service):
         key = list(secretWord)
         secretCode = "983272129"
         splitCode = secret.split(secretCode)
-        today = dt.datetime.utcnow() 
+        today = dt.datetime.utcnow() - dt.timedelta(hours=9)
         today.replace(hour=int(splitCode[0]),minute=int(splitCode[1]), second=0)
         secretDate = today - dt.timedelta(hours=0)
-        mappingCode = "{}{}{:02d}".format(secretDate.year, secretDate.month -1 , secretDate.day  ) 
+        mappingCode = "{}{}{}".format(secretDate.year, secretDate.month  -1 , secretDate.day  ) 
         return "".join(map(lambda t : key[int(t)] , list(str(int(mappingCode)>>1))))
     
     def __getJsonToMobileIndex(self, data ) -> dict : 
