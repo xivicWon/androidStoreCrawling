@@ -15,3 +15,4 @@ services:
       - /home/appstore/appstore_scraping:/app
       - /data/appstore/images:/images
     
+    
